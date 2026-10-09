@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <title>Anatomy 3D</title>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="description" content="Interactive 3D anatomy of the right upper limb.">
+<meta name="description" content="Interactive 3D anatomy of the whole human body.">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -13,6 +13,10 @@
 <link rel="apple-touch-icon" sizes="180x180" href="./icon-180.png">
 <link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png">
 <link rel="manifest" href="./manifest.json">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<!-- Display serif (variable). Non-blocking: system serif is used until it arrives or when offline. -->
+<link rel="stylesheet" crossorigin href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..700;1,9..144,400..600&display=swap" media="print" onload="this.media='all'">
 <script type="importmap">
 {"imports":{
   "three":"https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
@@ -26,56 +30,72 @@
   --safe-b: env(safe-area-inset-bottom, 0px);
   --safe-l: env(safe-area-inset-left, 0px);
   --safe-r: env(safe-area-inset-right, 0px);
-  --font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", system-ui, "Segoe UI", Roboto, sans-serif;
+  /* UI sans: the system face (SF on iPhone) so it follows iOS Dynamic Type and keeps tabular figures. */
+  --sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", system-ui, "Segoe UI", Roboto, sans-serif;
+  /* Display serif for titles and Latin names. */
+  --serif: "Fraunces", ui-serif, "New York", "Iowan Old Style", "Palatino Linotype", Georgia, "Times New Roman", serif;
+  /* Fluid type scale; every step is rem-based so it tracks the iPhone text-size setting. */
+  --fs-2xs: clamp(.64rem, .60rem + .12vw, .72rem);
+  --fs-xs:  clamp(.72rem, .68rem + .14vw, .80rem);
+  --fs-sm:  clamp(.82rem, .77rem + .18vw, .92rem);
+  --fs-md:  clamp(.94rem, .90rem + .20vw, 1.04rem);
+  --fs-lg:  clamp(1.18rem, 1.08rem + .45vw, 1.42rem);
+  --fs-xl:  clamp(1.55rem, 1.35rem + .9vw, 2rem);
+  --ctl: 2.45rem;            /* control height, grows with Dynamic Type */
   --accent: #0a84ff;
-  --bg1: #1a2030; --bg2: #090b10;
-  --text: #f4f6fb; --text2: rgba(236,241,252,.66); --text3: rgba(236,241,252,.42);
-  --glass: rgba(30,33,42,.64); --glass-solid: #1b1e27; --lbl-bg: rgba(27,30,39,.88);
-  --glass-border: rgba(255,255,255,.11);
-  --fill: rgba(255,255,255,.10); --fill-hi: rgba(255,255,255,.17);
+  --bg1: #20283b; --bg2: #07090e;
+  --text: #f6f7fb; --text2: rgba(238,242,252,.72); --text3: rgba(238,242,252,.46);
+  --glass: rgba(26,30,42,.70); --glass-solid: #1b1e27; --lbl-bg: #1d2230;
+  --glass-border: rgba(255,255,255,.12);
+  --fill: rgba(255,255,255,.10); --fill-hi: rgba(255,255,255,.19);
   --track: rgba(255,255,255,.18);
   --shadow: 0 10px 34px rgba(0,0,0,.45);
-  --good: #30d158; --bad: #ff453a;
-  --peek-h: calc(66px + var(--safe-b));
+  --peek-h: calc(3.9rem + var(--safe-b));
   --dock-bottom: max(8px, var(--safe-b));
-  --quiz-h: 0px;
 }
 @media (prefers-color-scheme: light){
-  :root{
-    --bg1: #fbfcfe; --bg2: #dfe4ee;
-    --text: #12151c; --text2: rgba(18,21,28,.62); --text3: rgba(18,21,28,.4);
-    --glass: rgba(255,255,255,.7); --glass-solid: #ffffff; --lbl-bg: rgba(255,255,255,.9);
-    --glass-border: rgba(0,0,0,.08);
-    --fill: rgba(0,0,0,.055); --fill-hi: rgba(0,0,0,.1);
+  :root:not([data-theme="dark"]){
+    --bg1: #ffffff; --bg2: #d3dae8;
+    --text: #12151c; --text2: rgba(18,21,28,.68); --text3: rgba(18,21,28,.44);
+    --glass: rgba(255,255,255,.76); --glass-solid: #ffffff; --lbl-bg: #ffffff;
+    --glass-border: rgba(0,0,0,.09);
+    --fill: rgba(0,0,0,.06); --fill-hi: rgba(0,0,0,.11);
     --track: rgba(0,0,0,.14);
     --shadow: 0 10px 34px rgba(20,30,60,.16);
-    --accent: #007aff;
-    --good: #1f9d45; --bad: #e0332a;
+    --accent: #0071e3;
   }
 }
+:root[data-theme="light"]{
+  --bg1: #ffffff; --bg2: #d3dae8; --text: #12151c; --text2: rgba(18,21,28,.68); --text3: rgba(18,21,28,.44);
+  --glass: rgba(255,255,255,.76); --glass-solid: #ffffff; --lbl-bg: #ffffff; --glass-border: rgba(0,0,0,.09);
+  --fill: rgba(0,0,0,.06); --fill-hi: rgba(0,0,0,.11); --track: rgba(0,0,0,.14); --shadow: 0 10px 34px rgba(20,30,60,.16); --accent: #0071e3;
+}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{font-size:100%;-webkit-text-size-adjust:100%;text-size-adjust:100%}
+/* iOS Dynamic Type: in WebKit this sets the root size from the Text Size setting (17px by default). Other browsers ignore it. */
+@supports (font: -apple-system-body){ html{font: -apple-system-body} }
+html{font-family:var(--sans)}
 html,body{margin:0;height:100%;overflow:hidden;overscroll-behavior:none;background:#0b0d12}
 body{
-  position:fixed;inset:0;font:15px/1.35 var(--font);color:var(--text);
+  position:fixed;inset:0;font-family:var(--sans);font-size:var(--fs-md);line-height:1.38;color:var(--text);
+  font-variant-numeric:tabular-nums;
   background:radial-gradient(120% 90% at 50% 30%, var(--bg1) 0%, var(--bg2) 100%);
-  -webkit-user-select:none;user-select:none;-webkit-touch-callout:none;
-  -webkit-text-size-adjust:100%;touch-action:manipulation;
+  -webkit-user-select:none;user-select:none;-webkit-touch-callout:none;touch-action:manipulation;
 }
+@media (prefers-color-scheme: light){ html:not([data-theme="dark"]),html:not([data-theme="dark"]) body{background:#d3dae8} }
 button{font:inherit;color:inherit;border:0;background:none;padding:0;margin:0;cursor:pointer;touch-action:manipulation}
 button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 [hidden]{display:none !important}
-svg.i{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;flex:none}
+svg.i{width:1.2rem;height:1.2rem;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;flex:none}
 
 canvas#c{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none;outline:none}
 #labels{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:2}
-.lbl{position:absolute;left:0;top:0;max-width:130px;padding:3px 8px;border-radius:9px;font-size:11px;font-weight:600;line-height:1.25;
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--text);
-  background:var(--lbl-bg);
-  border:.5px solid var(--glass-border);will-change:transform}
+.lbl{position:absolute;left:0;top:0;max-width:15em;padding:.2em .6em;border-radius:.7em;font-size:var(--fs-2xs);font-weight:650;line-height:1.25;letter-spacing:.005em;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--text);background:var(--lbl-bg);
+  border:1px solid var(--glass-border);box-shadow:0 1px 4px rgba(0,0,0,.25);will-change:transform}
 .lbl.sel{background:var(--accent);color:#fff;border-color:transparent;z-index:1}
-.lbl i{display:inline-block;width:6px;height:6px;border-radius:50%;margin-right:5px;vertical-align:1px}
+.lbl i{display:inline-block;width:.5em;height:.5em;border-radius:50%;margin-right:.45em;vertical-align:.05em}
 
-/* Light mode + black-translucent status bar = white status text, so give the very top a soft dark scrim */
 .scrim-top{position:fixed;left:0;right:0;top:0;height:calc(var(--safe-t) + 4px);pointer-events:none;z-index:3;
   background:linear-gradient(rgba(10,12,18,.5),rgba(10,12,18,0));display:none}
 @media (prefers-color-scheme: light){ .scrim-top{display:block} }
@@ -88,60 +108,72 @@ canvas#c{position:fixed;inset:0;width:100%;height:100%;display:block;touch-actio
 /* ---------- top bar ---------- */
 #topbar{position:fixed;z-index:10;left:calc(10px + var(--safe-l));right:calc(10px + var(--safe-r));top:calc(var(--safe-t) + 8px);
   display:flex;gap:8px;align-items:center}
-.search{flex:1;min-width:0;height:48px;border-radius:24px;display:flex;align-items:center;gap:8px;padding:0 6px 0 14px;color:var(--text2)}
-.search input{flex:1;min-width:0;height:100%;border:0;outline:0;background:none;color:var(--text);font:inherit;font-size:16px;
+.search{flex:1;min-width:0;height:max(48px,calc(var(--ctl) + .4rem));border-radius:999px;display:flex;align-items:center;gap:8px;padding:0 6px 0 14px;color:var(--text2)}
+.search input{flex:1;min-width:0;height:100%;border:0;outline:0;background:none;color:var(--text);font:inherit;font-size:max(16px,var(--fs-md));
   -webkit-user-select:text;user-select:text;-webkit-appearance:none;appearance:none}
 .search input::placeholder{color:var(--text3)}
 .search input::-webkit-search-cancel-button{-webkit-appearance:none;display:none}
-.round{width:48px;height:48px;border-radius:50%;display:grid;place-items:center;flex:none}
-.round:active,.btn:active,.chip:active,.rail-btn:active{transform:scale(.95)}
+.round{width:max(48px,calc(var(--ctl) + .4rem));height:max(48px,calc(var(--ctl) + .4rem));border-radius:50%;display:grid;place-items:center;flex:none}
+.round:active,.btn:active,.chip:active,.rail-btn:active,.rg:active{transform:scale(.95)}
 .clear{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;color:var(--text2)}
-body.quiz #topbar,body.quiz #results{display:none}
 
-#results{position:fixed;z-index:11;left:calc(10px + var(--safe-l));right:calc(10px + var(--safe-r));top:calc(var(--safe-t) + 64px);
-  max-height:min(56vh, calc(100dvh - var(--safe-t) - 90px));overflow:auto;border-radius:20px;padding:6px;overscroll-behavior:contain;
-  -webkit-overflow-scrolling:touch;touch-action:pan-y}
-.res{display:flex;align-items:center;gap:12px;width:100%;min-height:54px;padding:6px 12px;border-radius:14px;text-align:left}
+/* region picker */
+#regions{position:fixed;z-index:9;left:calc(10px + var(--safe-l));right:calc(10px + var(--safe-r));top:calc(var(--safe-t) + max(48px,calc(var(--ctl) + .4rem)) + 14px);
+  border-radius:999px;padding:4px;display:flex;gap:2px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;touch-action:pan-x;overscroll-behavior-x:contain}
+#regions::-webkit-scrollbar{display:none}
+.rg{flex:none;height:calc(var(--ctl) - .35rem);min-height:36px;padding:0 .8em;border-radius:999px;font-size:var(--fs-sm);font-weight:600;color:var(--text2);white-space:nowrap;transition:background .15s,color .15s,transform .12s}
+.rg[aria-selected="true"]{background:var(--accent);color:#fff;box-shadow:0 1px 6px rgba(10,132,255,.45)}
+
+#results{position:fixed;z-index:11;left:calc(10px + var(--safe-l));right:calc(10px + var(--safe-r));top:calc(var(--safe-t) + max(48px,calc(var(--ctl) + .4rem)) + 14px);
+  max-height:min(60vh, calc(100dvh - var(--safe-t) - 90px));overflow:auto;border-radius:22px;padding:6px;overscroll-behavior:contain;
+  -webkit-overflow-scrolling:touch;touch-action:pan-y;background:var(--glass-solid);-webkit-backdrop-filter:none;backdrop-filter:none}
+.res{display:flex;align-items:center;gap:12px;width:100%;min-height:3.3rem;padding:6px 12px;border-radius:14px;text-align:left}
 .res:active,.res.hl{background:var(--fill)}
-.res .dot{width:10px;height:10px;border-radius:50%;flex:none}
+.res .dot{width:.7em;height:.7em;border-radius:50%;flex:none}
 .res .t{flex:1;min-width:0}
-.res .n{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.res .s{font-size:12.5px;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.res .off{font-size:11px;color:var(--text3);flex:none}
+.res .n{font-family:var(--serif);font-weight:560;font-size:var(--fs-md);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.res .s{font-size:var(--fs-xs);color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.res .s em{font-family:var(--serif);font-style:italic}
+.res .off{font-size:var(--fs-2xs);font-weight:600;letter-spacing:.06em;font-variant-caps:all-small-caps;color:var(--text3);flex:none}
 .empty{padding:22px 12px;text-align:center;color:var(--text2)}
 
 /* ---------- right rail ---------- */
-#rail{position:fixed;z-index:8;right:calc(10px + var(--safe-r));top:calc(var(--safe-t) + 70px);display:flex;flex-direction:column;gap:8px}
-.rail-btn{width:54px;height:54px;border-radius:18px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:10px;font-weight:600;color:var(--text)}
-body.quiz #rail .hide-quiz{display:none}
-body.quiz #rail{top:calc(var(--safe-t) + 12px)}
+#rail{position:fixed;z-index:8;right:calc(10px + var(--safe-r));top:calc(var(--safe-t) + max(48px,calc(var(--ctl) + .4rem)) + var(--ctl) + 34px);display:flex;flex-direction:column;gap:8px}
+.rail-btn{width:3.3rem;height:3.3rem;border-radius:18px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:var(--fs-2xs);font-weight:650;color:var(--text)}
 
 /* ---------- dock ---------- */
 #dock{position:fixed;z-index:9;left:calc(8px + var(--safe-l));right:calc(8px + var(--safe-r));bottom:var(--dock-bottom);
-  max-width:640px;margin:0 auto;border-radius:26px;padding:2px 10px 10px;transition:bottom .35s cubic-bezier(.2,.8,.2,1),opacity .2s,transform .3s}
+  max-width:640px;margin:0 auto;border-radius:26px;padding:2px 10px 10px;max-height:52dvh;overflow-y:auto;overflow-x:hidden;
+  transition:bottom .35s cubic-bezier(.2,.8,.2,1),opacity .2s,transform .3s}
 #dock.away{opacity:0;pointer-events:none;transform:translateY(24px)}
 #dockToggle{display:flex;align-items:center;justify-content:center;width:100%;height:26px;color:var(--text3)}
-#dockToggle svg{width:20px;height:20px;transition:transform .25s}
+#dockToggle svg{transition:transform .25s}
 #dock.collapsed #dockToggle svg{transform:rotate(180deg)}
-#dock.collapsed{padding-bottom:0}
+#dock.collapsed{padding-bottom:0;overflow:hidden}
 #dock.collapsed .rows{display:none}
-.rows{display:flex;flex-direction:column;gap:8px}
+.rows{display:flex;flex-direction:column;gap:7px}
 .row{display:flex;align-items:center;gap:8px}
 .chips{overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;margin:0 -10px;padding:0 10px;touch-action:pan-x;overscroll-behavior-x:contain}
 .chips::-webkit-scrollbar{display:none}
-.chip,.btn{height:44px;border-radius:22px;padding:0 15px;display:inline-flex;align-items:center;gap:7px;flex:none;
-  background:var(--fill);font-weight:600;font-size:14px;white-space:nowrap;transition:background .15s,transform .12s,color .15s}
-.chip .dot{width:10px;height:10px;border-radius:50%}
+/* two rows, scrolling sideways: ~5 layer chips visible at once, so stripping the body down is quick */
+.chips{display:grid;grid-template-rows:repeat(2,auto);grid-auto-flow:column;grid-auto-columns:max-content;gap:6px 8px;align-items:center}
+.chips .chip{height:calc(var(--ctl) - .3rem);min-height:38px}
+.chip.act{background:var(--fill);color:var(--text);font-weight:700;letter-spacing:.01em}
+.chip.act svg{width:1rem;height:1rem}
+.chip,.btn{height:var(--ctl);min-height:40px;border-radius:999px;padding:0 .95em;display:inline-flex;align-items:center;gap:.5em;flex:none;
+  background:var(--fill);font-weight:600;font-size:var(--fs-sm);white-space:nowrap;transition:background .15s,transform .12s,color .15s}
+.chip .dot{width:.72em;height:.72em;border-radius:50%;box-shadow:0 0 0 1px rgba(128,134,150,.55)}
 .chip[aria-pressed="false"]{color:var(--text3)}
 .chip[aria-pressed="false"] .dot{background:transparent !important;box-shadow:inset 0 0 0 1.5px var(--text3)}
 .chip[aria-pressed="true"]{background:var(--fill-hi)}
 .btn[aria-pressed="true"],.btn.primary{background:var(--accent);color:#fff}
-.btn.sq{padding:0;width:44px;justify-content:center}
-.stepper{display:inline-flex;align-items:center;height:44px;border-radius:22px;background:var(--fill);flex:none}
-.stepper button{width:42px;height:44px;display:grid;place-items:center;border-radius:22px}
+.stepper{display:inline-flex;align-items:center;height:var(--ctl);min-height:40px;border-radius:999px;background:var(--fill);flex:none}
+.stepper button{width:2.6rem;height:100%;display:grid;place-items:center;border-radius:999px}
 .stepper button:disabled{opacity:.3}
-.stepper span{font-weight:600;font-size:14px;min-width:62px;text-align:center;font-variant-numeric:tabular-nums}
-.expl{min-width:112px;justify-content:center}
+.stepper .pl{display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:5.4rem;line-height:1.1}
+.stepper .pl b{font-size:var(--fs-sm);font-weight:650}
+.stepper .pl small{font-size:var(--fs-2xs);color:var(--text3);max-width:6.2rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.expl{min-width:7rem;justify-content:center}
 input[type=range]{-webkit-appearance:none;appearance:none;flex:1;min-width:0;height:44px;margin:0;background:transparent;touch-action:none;cursor:pointer}
 input[type=range]::-webkit-slider-runnable-track{height:6px;border-radius:3px;
   background:linear-gradient(var(--accent),var(--accent)) 0/var(--p,0%) 100% no-repeat, var(--track)}
@@ -150,11 +182,8 @@ input[type=range]::-moz-range-progress{height:6px;border-radius:3px;background:v
 input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:28px;height:28px;border-radius:50%;margin-top:-11px;background:#fff;
   box-shadow:0 1px 3px rgba(0,0,0,.35),0 0 0 .5px rgba(0,0,0,.1)}
 input[type=range]::-moz-range-thumb{width:28px;height:28px;border:0;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.35)}
-.pct{width:40px;text-align:right;font-size:13px;color:var(--text2);font-variant-numeric:tabular-nums}
+.pct{width:2.9em;text-align:right;font-size:var(--fs-sm);color:var(--text2)}
 .sp{flex:1}
-body.quiz #dock{bottom:calc(var(--dock-bottom) + var(--quiz-h) + 8px)}
-body.quiz #dock .row-b,body.quiz #dock .row-c,body.quiz #dockToggle{display:none}
-body.quiz #dock{padding-top:10px}
 
 /* ---------- bottom sheet ---------- */
 #sheet{position:fixed;z-index:12;left:0;right:0;bottom:0;max-width:680px;margin:0 auto;height:700px;transform:translateY(110%);
@@ -164,51 +193,32 @@ body.quiz #dock{padding-top:10px}
   -webkit-backdrop-filter:blur(28px) saturate(1.8);backdrop-filter:blur(28px) saturate(1.8)}
 #sheet.open{pointer-events:auto}
 #sheet.dragging{transition:none}
-#sheetHead{flex:none;padding:6px max(12px, var(--safe-r)) 0 max(12px, var(--safe-l));touch-action:none;cursor:grab}
+#sheetHead{flex:none;padding:6px max(12px, var(--safe-r)) 0 max(16px, var(--safe-l));touch-action:none;cursor:grab}
 .grabber{width:38px;height:5px;border-radius:3px;background:var(--text3);margin:0 auto 4px;opacity:.7}
-.hrow{display:flex;align-items:center;gap:4px;min-height:48px}
-.hrow .tt{flex:1;min-width:0;padding:0 4px}
-.hrow h2{margin:0;font-size:19px;font-weight:700;letter-spacing:-.01em;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.latin{font-style:italic;font-size:13px;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hrow{display:flex;align-items:center;gap:4px;min-height:3rem}
+.hrow .tt{flex:1;min-width:0;padding:0 4px 0 0}
+.hrow h2{margin:0;font-family:var(--serif);font-optical-sizing:auto;font-size:var(--fs-lg);font-weight:620;letter-spacing:-.012em;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.latin{font-family:var(--serif);font-optical-sizing:auto;font-style:italic;font-weight:420;font-size:var(--fs-sm);color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:.1em}
 .nav{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;color:var(--text2);flex:none}
 .nav:active{background:var(--fill)}
 #sheet:not([data-state="peek"]) h2,#sheet:not([data-state="peek"]) .latin{white-space:normal;overflow:visible;text-overflow:clip}
 #sheet[data-state="peek"] .latin,#sheet[data-state="peek"] #sChips{display:none}
-#sheet[data-state="peek"] #sPrev,#sheet[data-state="peek"] #sNext{display:none}
-#sChips{display:flex;flex-wrap:wrap;gap:6px;padding:4px 4px 8px}
-.tag{display:inline-flex;align-items:center;gap:6px;height:26px;padding:0 10px;border-radius:13px;background:var(--fill);font-size:12px;font-weight:600;color:var(--text2)}
-.tag .dot{width:8px;height:8px;border-radius:50%}
+#sChips{display:flex;flex-wrap:wrap;gap:6px;padding:4px 0 10px}
+.tag{display:inline-flex;align-items:center;gap:6px;min-height:1.7rem;padding:0 .75em;border-radius:999px;background:var(--fill);font-size:var(--fs-xs);font-weight:620;letter-spacing:.01em;color:var(--text2)}
+.tag .dot{width:.6em;height:.6em;border-radius:50%}
+.tag.side{background:var(--accent);color:#fff}
 #sheetBody{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;touch-action:pan-y;
   padding:4px max(18px, var(--safe-r)) calc(24px + var(--safe-b) + var(--hide,0px)) max(18px, var(--safe-l));-webkit-user-select:text;user-select:text}
-.summary{font-size:15.5px;line-height:1.45;margin:4px 0 12px}
+.summary{font-size:var(--fs-md);line-height:1.5;margin:4px 0 14px;text-wrap:pretty}
 .field{margin:0 0 14px}
-.field h4{margin:0 0 3px;font-size:11.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--text3)}
-.field p{margin:0;font-size:15px}
-.field ul{margin:0;padding-left:18px}
+.field h4{margin:0 0 .25em;font-size:var(--fs-xs);font-weight:700;letter-spacing:.11em;font-variant-caps:all-small-caps;text-transform:lowercase;color:var(--text3)}
+.field p{margin:0;font-size:var(--fs-md)}
+.field ul{margin:0;padding-left:1.15em}
 .field li{margin:1px 0}
-.clin{background:var(--fill);border-radius:14px;padding:12px 14px;margin:6px 0 14px}
+.clin{background:var(--fill);border-radius:16px;padding:12px 14px;margin:6px 0 14px}
 .clin h4{color:var(--accent)}
 .clin p{margin:0}
 .soon{padding:14px;border-radius:14px;background:var(--fill);color:var(--text2);text-align:center;margin-top:6px}
-
-/* ---------- quiz ---------- */
-#quiz{position:fixed;z-index:9;left:calc(8px + var(--safe-l));right:calc(8px + var(--safe-r));bottom:var(--dock-bottom);max-width:640px;margin:0 auto;
-  border-radius:26px;padding:12px;display:flex;flex-direction:column;gap:10px}
-.seg{display:flex;background:var(--fill);border-radius:22px;padding:3px;flex:1}
-.seg button{flex:1;height:38px;border-radius:19px;font-weight:600;font-size:14px;color:var(--text2)}
-.seg button[aria-selected="true"]{background:var(--glass-solid);color:var(--text);box-shadow:0 1px 4px rgba(0,0,0,.2)}
-.score{font-weight:700;font-size:14px;min-width:56px;text-align:center;font-variant-numeric:tabular-nums}
-.qprompt{font-size:13px;color:var(--text2)}
-.qname{font-size:21px;font-weight:700;letter-spacing:-.01em;line-height:1.2}
-.qhint:empty,#qfb:empty{display:none}
-.qhint{font-size:13.5px;font-style:italic;color:var(--text2);margin-top:2px}
-.opts{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.opt{min-height:50px;padding:8px 10px;border-radius:16px;background:var(--fill);font-weight:600;font-size:14px;line-height:1.2;text-align:center}
-.opt.good{background:var(--good);color:#fff}
-.opt.bad{background:var(--bad);color:#fff}
-.opt:disabled:not(.good):not(.bad){opacity:.5}
-#qfb{font-weight:700}
-#qfb.good{color:var(--good)} #qfb.bad{color:var(--bad)}
 
 /* ---------- modals ---------- */
 .modal{position:fixed;inset:0;z-index:30;display:flex;align-items:flex-end;justify-content:center;background:rgba(0,0,0,.38);
@@ -220,54 +230,62 @@ body.quiz #dock{padding-top:10px}
 .modal.open .mcard{transform:none}
 #mInfo .mcard{height:auto;max-height:calc(100dvh - var(--safe-t) - 36px)}
 .mhead{display:flex;align-items:center;justify-content:space-between;padding:10px max(10px, var(--safe-r)) 4px max(20px, var(--safe-l))}
-.mhead h3{margin:0;font-size:20px;font-weight:700}
+.mhead h3{margin:0;font-family:var(--serif);font-size:var(--fs-xl);font-weight:620;letter-spacing:-.015em}
 .mbody{overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding:6px max(20px, var(--safe-r)) calc(24px + var(--safe-b)) max(20px, var(--safe-l));-webkit-user-select:text;user-select:text}
 .gsearch{margin:6px max(16px, var(--safe-r)) 8px max(16px, var(--safe-l));height:44px;border-radius:22px;background:var(--fill);display:flex;align-items:center;padding:0 14px;gap:8px;color:var(--text2)}
-.gsearch input{flex:1;min-width:0;height:100%;border:0;outline:0;background:none;color:var(--text);font:inherit;font-size:16px;-webkit-user-select:text;user-select:text}
+.gsearch input{flex:1;min-width:0;height:100%;border:0;outline:0;background:none;color:var(--text);font:inherit;font-size:max(16px,var(--fs-md));-webkit-user-select:text;user-select:text}
 .term{padding:10px 0;border-bottom:.5px solid var(--glass-border)}
-.term b{display:block;font-size:15.5px}
-.term span{color:var(--text2);font-size:14.5px}
+.term b{display:block;font-family:var(--serif);font-size:var(--fs-md);font-weight:620}
+.term span{color:var(--text2);font-size:var(--fs-sm)}
 .mbody p{margin:0 0 12px}
 .warn{padding:12px 14px;border-radius:14px;background:var(--fill);font-weight:600}
-.small{font-size:13px;color:var(--text2)}
+.small{font-size:var(--fs-xs);color:var(--text2)}
 
 /* ---------- loading ---------- */
-#loading{position:fixed;inset:0;z-index:50;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:30px max(30px, var(--safe-r)) 30px max(30px, var(--safe-l));text-align:center;
-  background:radial-gradient(120% 90% at 50% 30%, var(--bg1) 0%, var(--bg2) 100%);transition:opacity .45s}
+#loading{position:fixed;inset:0;z-index:50;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:30px max(30px, var(--safe-r)) 30px max(30px, var(--safe-l));text-align:center;
+  background:radial-gradient(120% 90% at 50% 30%, var(--bg1) 0%, var(--bg2) 100%);transition:opacity .5s}
 #loading.done{opacity:0;pointer-events:none}
-#loading h1{margin:0;font-size:24px;font-weight:700;letter-spacing:-.02em}
+#loading h1{margin:0;font-family:var(--serif);font-size:var(--fs-xl);font-weight:600;letter-spacing:-.02em}
 #loading .bar{width:min(260px,70vw);height:6px;border-radius:3px;background:var(--track);overflow:hidden}
-#loading .bar i{display:block;height:100%;width:0;background:var(--accent);border-radius:3px;transition:width .2s}
-#loading .bar.ind i{width:35%;animation:ind 1.1s ease-in-out infinite}
+#loading .bar i{display:block;height:100%;width:0;background:var(--accent);border-radius:3px;transition:width .25s}
+#loading .bar.ind i{width:35%;animation:ind 1.3s ease-in-out infinite}
 @keyframes ind{0%{transform:translateX(-100%)}100%{transform:translateX(290%)}}
-#loadMsg{color:var(--text2);font-size:14px;min-height:20px}
+#loadMsg{color:var(--text2);font-size:var(--fs-sm);min-height:1.4em}
+#loadPct{font-size:var(--fs-lg);font-weight:600;letter-spacing:.01em;min-height:1.3em}
 #loadErr{max-width:320px}
+#loadErr h1{font-size:var(--fs-lg)}
 #loadErr p{color:var(--text2);margin:8px 0 14px}
 #loadErr .btn{margin:0 auto}
-.arm-logo{width:64px;height:64px;color:var(--accent);opacity:.9}
+.fig{width:min(150px,38vw);height:auto;color:var(--accent);overflow:visible}
+.fig .track{fill:none;stroke:var(--track);stroke-width:3.4;stroke-linecap:round;stroke-linejoin:round}
+.fig .fillp{fill:none;stroke:currentColor;stroke-width:3.4;stroke-linecap:round;stroke-linejoin:round}
+.fig .draw{fill:none;stroke:currentColor;stroke-width:1.1;stroke-linecap:round;stroke-linejoin:round;opacity:.55;stroke-dasharray:420;stroke-dashoffset:420;animation:draw 4.2s ease-in-out infinite}
+.fig .scan{stroke:currentColor;stroke-width:.8;opacity:.5;animation:scan 3.6s ease-in-out infinite alternate}
+@keyframes draw{0%{stroke-dashoffset:420;opacity:.0}15%{opacity:.6}55%{stroke-dashoffset:0;opacity:.6}85%{stroke-dashoffset:0;opacity:.25}100%{stroke-dashoffset:-420;opacity:0}}
+@keyframes scan{from{transform:translateY(0)}to{transform:translateY(168px)}}
 @media (prefers-reduced-motion: reduce){ *{transition-duration:.01ms !important;animation-duration:.01ms !important} }
-@media (min-width: 700px){ #dock,#quiz{max-width:560px} }
+@media (min-width: 700px){ #dock{max-width:560px} }
 </style>
 </head>
 <body>
-<canvas id="c" aria-label="3D model of the right upper limb"></canvas>
+<canvas id="c" aria-label="3D model of the human body"></canvas>
 <div id="labels" aria-hidden="true"></div>
 <div class="scrim-top"></div>
 
 <header id="topbar">
   <div class="search glass">
     <svg class="i" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
-    <input id="q" type="search" placeholder="Search parts" enterkeyhint="search" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" aria-label="Search parts">
+    <input id="q" type="search" placeholder="Search structures" enterkeyhint="search" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" aria-label="Search structures">
     <button id="qclear" class="clear" aria-label="Clear search" hidden><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9 9l6 6M15 9l-6 6"/></svg></button>
   </div>
   <button id="btnGloss" class="round glass" aria-label="Glossary"><svg class="i" viewBox="0 0 24 24"><path d="M4 19V5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z"/><path d="M8 7.5h7M8 11h5"/><path d="M4 19a2 2 0 0 0 2 2h13"/></svg></button>
   <button id="btnInfo" class="round glass" aria-label="About and credits"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5.5"/><circle cx="12" cy="7.8" r=".7" fill="currentColor"/></svg></button>
 </header>
+<nav id="regions" class="glass" role="tablist" aria-label="Body region"></nav>
 <div id="results" class="glass" hidden></div>
 
 <nav id="rail" aria-label="View">
-  <button id="btnReset" class="rail-btn glass hide-quiz" aria-label="Reset view"><svg class="i" viewBox="0 0 24 24"><path d="M4 9V5a1 1 0 0 1 1-1h4M15 4h4a1 1 0 0 1 1 1v4M20 15v4a1 1 0 0 1-1 1h-4M9 20H5a1 1 0 0 1-1-1v-4"/><circle cx="12" cy="12" r="2.5"/></svg>Reset</button>
-  <button id="btnQuiz" class="rail-btn glass hide-quiz" aria-label="Start quiz"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.6 9.6a2.5 2.5 0 1 1 3.5 2.3c-.7.4-1.1.9-1.1 1.7"/><circle cx="12" cy="16.9" r=".7" fill="currentColor"/></svg>Quiz</button>
+  <button id="btnReset" class="rail-btn glass" aria-label="Reset view"><svg class="i" viewBox="0 0 24 24"><path d="M4 9V5a1 1 0 0 1 1-1h4M15 4h4a1 1 0 0 1 1 1v4M20 15v4a1 1 0 0 1-1 1h-4M9 20H5a1 1 0 0 1-1-1v-4"/><circle cx="12" cy="12" r="2.5"/></svg>Reset</button>
 </nav>
 
 <section id="dock" class="glass" aria-label="Controls">
@@ -280,44 +298,21 @@ body.quiz #dock{padding-top:10px}
       <span class="pct" id="pct">0%</span>
     </div>
     <div class="row row-c">
-      <div class="stepper" role="group" aria-label="Peel muscle layers">
+      <div class="stepper" role="group" aria-label="Peel layers from outside in">
         <button id="peelMinus" aria-label="Restore layer"><svg class="i" viewBox="0 0 24 24"><path d="M6 12h12"/></svg></button>
-        <span id="peelLbl">Peel 0/3</span>
+        <div class="pl"><b id="peelLbl">Peel 0/0</b><small id="peelSub">Skin on</small></div>
         <button id="peelPlus" aria-label="Peel next layer"><svg class="i" viewBox="0 0 24 24"><path d="M6 12h12M12 6v12"/></svg></button>
       </div>
       <button id="btnLabels" class="btn" aria-pressed="false"><svg class="i" viewBox="0 0 24 24"><path d="M3.5 12V4.5h7.5l9.5 9.5-7.5 7.5z"/><circle cx="8" cy="9" r="1.2" fill="currentColor" stroke="none"/></svg>Labels</button>
-      <button id="btnIso" class="btn" aria-pressed="false"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.5"/><circle cx="12" cy="12" r="8.5" stroke-dasharray="2.6 3.2"/></svg>Isolate</button>
     </div>
   </div>
 </section>
 
-<section id="quiz" class="glass" hidden aria-label="Quiz">
-  <div class="row">
-    <div class="seg" role="tablist"><button id="qmFind" role="tab" aria-selected="true">Find it</button><button id="qmName" role="tab" aria-selected="false">Name it</button></div>
-    <div class="score" id="qscore">0 / 0</div>
-    <button id="qexit" class="round" style="width:44px;height:44px;background:var(--fill);box-shadow:none" aria-label="Exit quiz"><svg class="i" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
-  </div>
-  <div>
-    <div class="qprompt" id="qprompt"></div>
-    <div class="qname" id="qname"></div>
-    <div class="qhint" id="qhint"></div>
-  </div>
-  <div class="opts" id="qopts" hidden></div>
-  <div id="qfb" aria-live="polite"></div>
-  <div class="row">
-    <button id="qskip" class="btn">Skip</button>
-    <span class="sp"></span>
-    <button id="qnext" class="btn primary" hidden>Next</button>
-  </div>
-</section>
-
-<section id="sheet" aria-label="Part details" data-state="hidden" aria-hidden="true">
+<section id="sheet" aria-label="Structure details" data-state="hidden" aria-hidden="true">
   <div id="sheetHead">
     <div class="grabber"></div>
     <div class="hrow">
-      <button class="nav" id="sPrev" aria-label="Previous part"><svg class="i" viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg></button>
       <div class="tt"><h2 id="sName"></h2><div class="latin" id="sLatin"></div></div>
-      <button class="nav" id="sNext" aria-label="Next part"><svg class="i" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button>
       <button class="nav" id="sClose" aria-label="Close details"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9 9l6 6M15 9l-6 6"/></svg></button>
     </div>
     <div id="sChips"></div>
@@ -327,36 +322,46 @@ body.quiz #dock{padding-top:10px}
 
 <div class="modal" id="mGloss" aria-hidden="true">
   <div class="mcard" role="dialog" aria-label="Glossary">
-    <div class="mhead"><h3>Glossary</h3><button class="round" style="width:44px;height:44px;background:var(--fill)" data-close aria-label="Close glossary"><svg class="i" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+    <div class="mhead"><h3>Glossary</h3><button class="round" style="background:var(--fill)" data-close aria-label="Close glossary"><svg class="i" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
     <label class="gsearch"><svg class="i" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input id="gq" type="search" placeholder="Search terms" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" aria-label="Search glossary"></label>
     <div class="mbody" id="gList"></div>
   </div>
 </div>
 <div class="modal" id="mInfo" aria-hidden="true">
   <div class="mcard" role="dialog" aria-label="About">
-    <div class="mhead"><h3>About</h3><button class="round" style="width:44px;height:44px;background:var(--fill)" data-close aria-label="Close about"><svg class="i" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+    <div class="mhead"><h3>About</h3><button class="round" style="background:var(--fill)" data-close aria-label="Close about"><svg class="i" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
     <div class="mbody" id="infoBody"></div>
   </div>
 </div>
 
 <div id="loading" role="status">
-  <svg class="arm-logo" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M22 6c4 6 4 14 2 22-2 8-8 14-6 22 1 5 5 8 10 8"/><path d="M34 6c6 6 8 14 6 22-1 6-4 10-3 16"/><circle cx="40" cy="52" r="4"/></svg>
+  <svg class="fig" viewBox="0 0 100 180" aria-hidden="true">
+    <defs>
+      <clipPath id="figClip"><rect id="figRect" x="-10" y="180" width="120" height="190"/></clipPath>
+      <path id="figShape" d="M50 4a9.5 11 0 1 0 .01 0z M42 26c-9 2-17 4-20 10-3 6-3 18-5 34l-4 26M58 26c9 2 17 4 20 10 3 6 3 18 5 34l4 26M42 26c1 6 0 10-2 14 0 18 3 34 3 46-1 4-5 10-6 18l-4 54M58 26c-1 6 0 10 2 14 0 18-3 34-3 46 1 4 5 10 6 18l4 54M43 86c4 3 10 3 14 0"/>
+    </defs>
+    <use href="#figShape" class="track"/>
+    <g clip-path="url(#figClip)"><use href="#figShape" class="fillp"/></g>
+    <use href="#figShape" class="draw"/>
+    <line class="scan" x1="12" x2="88" y1="4" y2="4"/>
+  </svg>
   <h1>Anatomy 3D</h1>
+  <div id="loadPct">&nbsp;</div>
   <div class="bar ind" id="loadBar"><i id="loadFill"></i></div>
   <div id="loadMsg">Starting up</div>
   <div id="loadErr" hidden>
-    <h1 style="font-size:20px">Couldn't load the model</h1>
+    <h1>Couldn't load the model</h1>
     <p id="loadErrMsg">Please check your connection and try again.</p>
     <button class="btn primary" onclick="location.reload()">Try again</button>
   </div>
 </div>
 
-<!-- Bootstrap safety net: shows a friendly message if the module graph (CDN) fails to load at all. -->
 <script type="module" id="main">
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -364,50 +369,58 @@ const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls)
 const clamp = THREE.MathUtils.clamp;
 const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const ease = t => t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+const darkMQ = matchMedia('(prefers-color-scheme: dark)');
+const isDark = () => { const t = document.documentElement.dataset.theme; return t ? t === 'dark' : darkMQ.matches; };
 
 /* ------------------------------------------------------------------ constants */
-const TYPE_COLOR = { bone: '#e8dfc8', muscle: '#b3323a', nerve: '#f2c94c', artery: '#e03a4a', vein: '#3b7ddd' };
-const TYPE_LABEL = { bone: 'Bone', muscle: 'Muscle', nerve: 'Nerve', artery: 'Artery', vein: 'Vein' };
-const LAYER_LABEL = { bone: 'Bone', muscle_deep: 'Deep muscle', muscle_mid: 'Middle muscle', muscle_superficial: 'Superficial muscle', nerve: 'Nerve', artery: 'Artery', vein: 'Vein' };
-const CHIPS = [
-  ['bone', 'Bone', '#e8dfc8'], ['muscle_deep', 'Deep muscle', '#8e2630'], ['muscle_mid', 'Middle muscle', '#b3323a'],
-  ['muscle_superficial', 'Superficial muscle', '#cf4a4f'], ['tendon', 'Tendons', '#f1ece0'], ['nerve', 'Nerves', '#f2c94c'],
-  ['artery', 'Arteries', '#e03a4a'], ['vein', 'Veins', '#3b7ddd'],
-];
-const PEEL_ORDER = ['muscle_superficial', 'muscle_mid', 'muscle_deep'];
+const TYPE_COLOR = { bone: '#efe3bf', cartilage: '#a8d2f0', ligament: '#e4dfd0', muscle: '#a4182a', nerve: '#ffd400', cns: '#e3b0b6', artery: '#e0202e', vein: '#1f55d6', organ: '#f08aa0' };
+const TYPE_LABEL = { bone: 'Bone', cartilage: 'Cartilage', ligament: 'Ligament', muscle: 'Muscle', nerve: 'Nerve', cns: 'Brain & spinal cord', artery: 'Artery', vein: 'Vein', organ: 'Organ' };
+const LAYER_COLOR = { bone: '#efe3bf', ligament: '#e4dfd0', cns: '#e3b0b6', organ: '#f08aa0', nerve: '#ffd400', artery: '#e0202e', vein: '#1f55d6',
+  muscle_deep: '#700c1c', muscle_mid: '#8c1022', muscle_superficial: '#a4182a', tendon: '#eef2f9' };
+// Outer -> inner. The peel stepper hides these in order; chips follow the same order.
+const PEEL_ORDER = ['muscle_superficial', 'muscle_mid', 'muscle_deep', 'vein', 'artery', 'nerve', 'ligament', 'organ'];
+const CHIP_ORDER = ['muscle_superficial', 'muscle_mid', 'muscle_deep', 'tendon', 'vein', 'artery', 'nerve', 'organ', 'ligament', 'cns', 'bone'];
 const EXPLODE_K = 1.0;
-const MAT_DEFS = {
-  Bone:      { color: 0xe9e0c9, roughness: .62 },
-  Cartilage: { color: 0xb4c4d3, roughness: .45 },
-  Muscle:    { color: 0x9c2a30, roughness: .56 },
-  Tendon:    { color: 0xf2eee3, roughness: .32 },
-  Nerve:     { color: 0xf4cb4a, roughness: .5 },
-  Artery:    { color: 0xd8283f, roughness: .42 },
-  Vein:      { color: 0x2f6fd2, roughness: .42 },
+const MAX_LABELS = 20;
+
+// Colour classes = glTF material names. [colour, roughness]. Saturated atlas palette.
+const CLS = {
+  Bone: [0xefe3bf, .52], Tooth: [0xfbfaf4, .28], Cartilage: [0xa8d2f0, .38], Ligament: [0xe9e4d4, .34], Tendon: [0xeef2f9, .3],
+  Muscle_sup: [0xa4182a, .42], Muscle_mid: [0x8c1022, .42], Muscle_deep: [0x700c1c, .42], Muscle: [0x9a1426, .42],
+  Nerve: [0xffd400, .38], Brain: [0xd9a0a8, .45], SpinalCord: [0xf4e4a0, .45],
+  Artery: [0xe0202e, .3], Vein: [0x1f55d6, .3], Heart: [0x8e0f1c, .36],
+  Organ_lung: [0xf08aa0, .4], Organ_airway: [0xd9ecf7, .35], Organ_liver: [0x6b2a1a, .34], Organ_gut: [0xf3a083, .38],
+  Organ_stomach: [0xee8aa0, .36], Organ_kidney: [0x7a1630, .34], Organ_bladder: [0xf6e27a, .36], Organ_spleen: [0x7e3f8f, .36],
+  Organ_pancreas: [0xd9b46a, .4], Organ_gland: [0xf08a24, .4], Organ_genital: [0xcc7aa6, .4], Organ_eye: [0xfbfbfb, .22],
+  Organ_ear: [0xd9a77a, .45], Organ_tongue: [0xe5516b, .38], Organ_other: [0xc98a96, .42],
 };
-const HL = {
-  sel:  { emissive: 0xffffff, intensity: .38 },
-  good: { emissive: 0x20c060, intensity: .7 },
-  bad:  { emissive: 0xff3b30, intensity: .7 },
-};
+const TYPE_DEFAULT_CLS = { bone: 'Bone', cartilage: 'Cartilage', ligament: 'Ligament', muscle: 'Muscle', nerve: 'Nerve', cns: 'Brain', artery: 'Artery', vein: 'Vein', organ: 'Organ_other' };
+const MUSCLE_VARIANT = { muscle_superficial: 'Muscle_sup', muscle_mid: 'Muscle_mid', muscle_deep: 'Muscle_deep' };
 
 /* ------------------------------------------------------------------ state */
 const S = {
-  layers: { bone: true, muscle_deep: true, muscle_mid: true, muscle_superficial: true, tendon: true, nerve: true, artery: true, vein: true },
-  isolate: false, labels: false, selected: null, explode: 0, explodeTarget: 0, hl: new Map(), quizGhost: false,
+  layers: {}, tendons: true, region: 'all', labels: false, sel: null, explode: 0, explodeTarget: 0,
 };
-let parts = [], partsById = new Map(), partsByMesh = new Map(), anatomy = null;
+let DATA = null;                 // parts.json
+let CARDS = {}, GLOSSARY = [];   // cards.json
+let parts = [];                  // built parts
+let cardIdx = new Map();         // card key -> { key, parts[], card, name, latin, ... }
+let regionName = new Map(), layerName = new Map();
+let pickList = null;
 
 /* ------------------------------------------------------------------ loading UI */
-const loadingEl = $('#loading'), loadBar = $('#loadBar'), loadFill = $('#loadFill'), loadMsg = $('#loadMsg');
-function setProgress(frac, msg) {
-  if (msg) loadMsg.textContent = msg;
+const loadingEl = $('#loading'), loadBar = $('#loadBar'), loadFill = $('#loadFill'), loadMsg = $('#loadMsg'), loadPct = $('#loadPct'), figRect = $('#figRect');
+function setProgress(frac, msg, pctText) {
+  if (msg != null) loadMsg.textContent = msg;
+  if (pctText != null) loadPct.textContent = pctText;
   if (frac == null) { loadBar.classList.add('ind'); return; }
-  loadBar.classList.remove('ind'); loadFill.style.width = Math.round(clamp(frac, 0, 1) * 100) + '%';
+  loadBar.classList.remove('ind'); const f = clamp(frac, 0, 1);
+  loadFill.style.width = (f * 100).toFixed(1) + '%';
+  figRect.setAttribute('y', String(180 - 176 * f - 2));
 }
 function fatal(msg) {
   loadingEl.classList.remove('done'); loadingEl.style.display = 'flex';
-  loadBar.hidden = true; loadMsg.hidden = true; $('#loadErr').hidden = false;
+  loadBar.hidden = true; loadMsg.hidden = true; loadPct.hidden = true; $('#loadErr').hidden = false;
   if (msg) $('#loadErrMsg').textContent = msg;
 }
 window.__fatal = fatal;
@@ -422,108 +435,153 @@ try {
 }
 renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
 renderer.setClearColor(0x000000, 0);
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.0;
 const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(36, 1, 0.01, 30);
+const camera = new THREE.PerspectiveCamera(32, 1, 0.02, 14);
 scene.add(camera);
-const hemi = new THREE.HemisphereLight(0xffffff, 0x8b93a8, 1.55);
-scene.add(hemi);
-const key = new THREE.DirectionalLight(0xffffff, 2.3);
-key.position.set(1.2, 1.4, 1.6); key.target.position.set(0, 0, -3);
-camera.add(key, key.target);
-const fill = new THREE.DirectionalLight(0xc6d4ff, 0.75);
-fill.position.set(-1.5, -.4, 1.0); fill.target.position.set(0, 0, -3);
-camera.add(fill, fill.target);
-const pivot = new THREE.Group(); scene.add(pivot);
+{ // soft studio reflections so the slightly glossy materials read as forms
+  const pm = new THREE.PMREMGenerator(renderer);
+  scene.environment = pm.fromScene(new RoomEnvironment(), 0.04).texture;
+  scene.environmentIntensity = 0.42;
+  pm.dispose();
+}
+scene.add(new THREE.HemisphereLight(0xffffff, 0x7d86a0, 0.35));
+// key + fill + rim, all attached to the camera so the model is always lit from the viewer's side
+const key = new THREE.DirectionalLight(0xfff4e6, 2.3);
+key.position.set(1.3, 1.6, 1.8); key.target.position.set(0, 0, -3);
+const fillL = new THREE.DirectionalLight(0xbfd0ff, 0.9);
+fillL.position.set(-1.8, -.3, 1.2); fillL.target.position.set(0, 0, -3);
+const rim = new THREE.DirectionalLight(0xdfe9ff, 2.2);
+rim.position.set(.9, 1.4, -6); rim.target.position.set(0, 0, -3);
+camera.add(key, key.target, fillL, fillL.target, rim, rim.target);
+const body = new THREE.Group(); scene.add(body); body.matrixWorldAutoUpdate = false;   // world matrices only change on explode (refreshWorld)
 
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true; controls.dampingFactor = 0.085;
 controls.rotateSpeed = .85; controls.zoomSpeed = .9; controls.panSpeed = .9;
-controls.screenSpacePanning = true; controls.minDistance = 0.1; controls.maxDistance = 6;
+controls.screenSpacePanning = true; controls.minDistance = 0.08; controls.maxDistance = 6;
 controls.addEventListener('change', requestRender);
-controls.addEventListener('start', () => cancelCameraTween(true));
+controls.addEventListener('start', () => cancelCameraTween());
 
 let W = innerWidth, H = innerHeight;
-let home = { dist: 1.5, target: new THREE.Vector3() };
+let viewShift = 0;     // constant projection offset (px) so the orbit centre sits in the free area between top bar and dock
 
-/* ------------------------------------------------------------------ materials */
-const matCache = new Map();
-function getMat(kind, name) {
-  const k = kind + '|' + name;
-  let m = matCache.get(k);
-  if (m) return m;
-  const d = MAT_DEFS[name] || MAT_DEFS.Muscle;
-  if (kind === 'base') {
-    m = new THREE.MeshStandardMaterial({ color: d.color, roughness: d.roughness, metalness: 0, side: THREE.DoubleSide });
-  } else if (kind === 'ghost') {
-    m = new THREE.MeshStandardMaterial({ color: d.color, roughness: d.roughness, metalness: 0, transparent: true, opacity: .12, depthWrite: false });
-  } else {
-    const h = HL[kind];
-    m = new THREE.MeshStandardMaterial({ color: d.color, roughness: d.roughness, metalness: 0, side: THREE.DoubleSide, emissive: h.emissive, emissiveIntensity: h.intensity });
-  }
-  m.name = name; matCache.set(k, m); return m;
+function applyTheme() {
+  const d = isDark();
+  renderer.toneMappingExposure = d ? 1.0 : .95;
+  for (const [k, m] of ghostMats) setGhostColor(m, k);
+  for (const m of ghostMats.values()) m.opacity = d ? .12 : .2;
+  const tc = document.querySelector('meta[name="theme-color"]'); if (tc) tc.content = d ? '#0b0d12' : '#e9edf5';
+  requestRender();
+}
+darkMQ.addEventListener('change', () => applyTheme());
+
+/* ------------------------------------------------------------------ materials: one per colour class and state, never per mesh */
+const baseMats = new Map(), selMats = new Map(), ghostMats = new Map();
+const _c = new THREE.Color(), _hsl = {};
+function clsDef(c) { return CLS[c] || CLS.Organ_other; }
+function getBase(c) {
+  let m = baseMats.get(c); if (m) return m;
+  const [col, r] = clsDef(c);
+  m = new THREE.MeshStandardMaterial({ color: col, roughness: r, metalness: 0.02, side: THREE.DoubleSide });
+  m.name = c; baseMats.set(c, m); return m;
+}
+function getSel(c) {
+  let m = selMats.get(c); if (m) return m;
+  const [col, r] = clsDef(c);
+  _c.setHex(col); _c.getHSL(_hsl);
+  const boosted = new THREE.Color().setHSL(_hsl.h, Math.min(1, _hsl.s * 1.18 + .08), clamp(_hsl.l * 1.04 + .015, 0, .9));
+  m = new THREE.MeshStandardMaterial({ color: boosted, roughness: Math.max(.2, r - .06), metalness: 0.02, side: THREE.DoubleSide, emissive: boosted.clone(), emissiveIntensity: .18 });
+  m.name = c + '-sel'; selMats.set(c, m); return m;
+}
+function setGhostColor(m, c) {
+  const [col] = clsDef(c);
+  _c.setHex(col); _c.getHSL(_hsl);
+  if (isDark()) m.color.setHSL(_hsl.h, _hsl.s * .22, .78);      // pale, desaturated, see-through on dark
+  else m.color.setHSL(_hsl.h, _hsl.s * .3, .36);                 // soft slate on light
+}
+// Merged-bucket materials get a tiny vertex-shader hook: position += aExp * uExplode, so the whole explode runs on the GPU.
+const uExpl = { value: 0 };
+function withExplode(m) {
+  m.onBeforeCompile = sh => {
+    sh.uniforms.uExplode = uExpl;
+    sh.vertexShader = sh.vertexShader
+      .replace('#include <common>', '#include <common>\nattribute vec3 aExp;\nuniform float uExplode;')
+      .replace('#include <begin_vertex>', '#include <begin_vertex>\ntransformed += aExp * uExplode;');
+  };
+  return m;
+}
+const mBaseMats = new Map();
+function getMBase(c) {
+  let m = mBaseMats.get(c); if (m) return m;
+  const [col, r] = clsDef(c);
+  m = withExplode(new THREE.MeshStandardMaterial({ color: col, roughness: r, metalness: 0.02, side: THREE.DoubleSide }));
+  m.name = c + '-m'; mBaseMats.set(c, m); return m;
+}
+function getGhost(c) {
+  let m = ghostMats.get(c); if (m) return m;
+  const [, r] = clsDef(c);
+  m = withExplode(new THREE.MeshStandardMaterial({ roughness: Math.max(.5, r), metalness: 0, transparent: true, opacity: isDark() ? .12 : .2, depthWrite: false, side: THREE.FrontSide, polygonOffset: true, polygonOffsetFactor: 2, polygonOffsetUnits: 2 }));
+  setGhostColor(m, c); m.name = c + '-ghost'; ghostMats.set(c, m); return m;
 }
 
 /* ------------------------------------------------------------------ helpers: names */
 const cleanName = s => String(s || '').replace(/\.(r|l|g)$/i, '').trim();
-const partTitle = p => (p.card && p.card.name) || cleanName(p.label);
-const groupLeaf = p => { const g = (p.group || '').split('>').map(x => cleanName(x)).filter(Boolean); return g[g.length - 1] || ''; };
 const toList = v => Array.isArray(v) ? v : (v == null || v === '' ? [] : [v]);
 const fmt = v => (v && typeof v === 'object') ? (v.name || v.label || v.text || JSON.stringify(v)) : String(v);
+const cap1 = s => s.charAt(0).toUpperCase() + s.slice(1);
 
 /* ------------------------------------------------------------------ render loop */
-let raf = 0, lastT = 0, tweens = [], cameraTween = null, _selPulseOn = false, viewShift = 0, viewShiftTarget = 0;
+let raf = 0, lastT = 0, tweens = [], cameraTween = null, pulseT0 = -1e9;
 function requestRender() { if (!raf) raf = requestAnimationFrame(frame); }
 function tween(dur, fn, done) {
   if (reduceMotion) dur = 0;
   const t = { t0: performance.now(), dur, fn, done, dead: false };
   tweens.push(t); requestRender(); return t;
 }
-// Stop the active camera tween (user drag or a newer camera move). callDone also fires its completion callback.
-function cancelCameraTween(callDone) {
+function cancelCameraTween() {
   const t = cameraTween; cameraTween = null;
   if (!t || t.dead) return;
   t.dead = true;
   const i = tweens.indexOf(t); if (i >= 0) tweens.splice(i, 1);
-  if (callDone && t.done) t.done();
 }
 const sheetEl = $('#sheet');
+let offs = null, basePos = null;     // Float32Arrays, 3 per part
+const _o = new THREE.Vector3();
 
-function explodeOffset(p, t, out) {
-  const m = t * EXPLODE_K * (0.035 * p.tier + 0.6 * p.radial);
-  return out.set(p.dir[0] * m, p.dir[1] * m, p.dir[2] * m);
-}
-const _v = new THREE.Vector3();
 function applyExplode() {
-  const t = S.explode;
-  for (const p of parts) {
-    explodeOffset(p, t, _v);
-    p.node.position.copy(p.basePos).add(_v);
+  const t = S.explode * EXPLODE_K;
+  for (let i = 0; i < parts.length; i++) {
+    const p = parts[i], j = i * 3;
+    const e = p.node.matrix.elements;
+    e[12] = basePos[j] + offs[j] * t; e[13] = basePos[j + 1] + offs[j + 1] * t; e[14] = basePos[j + 2] + offs[j + 2] * t;
   }
+  uExpl.value = t; worldDirty = true;
+  if (S.sel) refreshWorld();
 }
 function applyViewOffset() {
   if (Math.abs(viewShift) < 0.4) camera.clearViewOffset();
   else camera.setViewOffset(W, H, 0, viewShift, W, H);
+}
+function partOffset(p, t, out) {
+  const i = p.i * 3; const k = t * EXPLODE_K;
+  return out.set(offs[i] * k, offs[i + 1] * k, offs[i + 2] * k);
 }
 
 function frame(now) {
   raf = 0;
   const dt = Math.min(.05, (now - (lastT || now)) / 1000 || .016); lastT = now;
   let busy = false;
-
-  // explode smoothing
   const dE = S.explodeTarget - S.explode;
   if (Math.abs(dE) > 0.0004) {
-    S.explode = reduceMotion ? S.explodeTarget : S.explode + dE * (1 - Math.exp(-dt * 11));
+    S.explode = reduceMotion ? S.explodeTarget : S.explode + dE * (1 - Math.exp(-dt * 10));
     if (Math.abs(S.explodeTarget - S.explode) < 0.0006) S.explode = S.explodeTarget;
     applyExplode(); syncExplodeUI(); busy = true;
   }
-  // view shift smoothing
-  const dV = viewShiftTarget - viewShift;
-  if (Math.abs(dV) > 0.3) { viewShift += dV * (1 - Math.exp(-dt * 9)); applyViewOffset(); busy = true; }
-  else if (dV !== 0) { viewShift = viewShiftTarget; applyViewOffset(); }
-  // tweens
   if (tweens.length) {
-    const cur = tweens; tweens = []; // tweens started from callbacks land in the fresh array
+    const cur = tweens; tweens = [];
     for (const tw of cur) {
       if (tw.dead) continue;
       const k = tw.dur <= 0 ? 1 : clamp((now - tw.t0) / tw.dur, 0, 1);
@@ -533,12 +591,12 @@ function frame(now) {
     }
     busy = true;
   }
-  // pulse the selection highlight (only while a part is selected)
-  const pulsing = !!S.selected && !reduceMotion;
-  if (pulsing || _selPulseOn) {
-    const v = pulsing ? .375 + .125 * Math.sin(now / 1200 * Math.PI * 2) : HL.sel.intensity;
-    for (const n in MAT_DEFS) getMat('sel', n).emissiveIntensity = v;
-    _selPulseOn = pulsing; if (pulsing) busy = true;
+  // brief, gentle emissive pulse on the selection (then it settles) so we do not render continuously
+  if (S.sel) {
+    const t = now - pulseT0;
+    let v = .17;
+    if (t < 2600 && !reduceMotion) { v = .17 + .15 * Math.sin(t / 1300 * Math.PI * 2) * (1 - t / 2600); busy = true; }
+    for (const m of selMats.values()) m.emissiveIntensity = v;
   }
   controls.update();
   renderer.render(scene, camera);
@@ -550,7 +608,7 @@ function onResize() {
   W = innerWidth; H = innerHeight;
   renderer.setSize(W, H, false);
   camera.aspect = W / H; camera.updateProjectionMatrix();
-  measureUI(); layoutSheet(false); computeShift(true); applyViewOffset(); requestRender();
+  measureUI(); layoutSheet(false); computeShift(); requestRender();
 }
 addEventListener('resize', onResize);
 addEventListener('orientationchange', () => setTimeout(onResize, 250));
@@ -571,165 +629,369 @@ function measureUI() {
   sheetEl.style.height = fullH + 'px';
 }
 
-/* ------------------------------------------------------------------ framing / view shift */
-const dock = $('#dock'), quizEl = $('#quiz');
+/* ------------------------------------------------------------------ framing */
+const dock = $('#dock'), regionsEl = $('#regions'), railEl = $('#rail');
+let dockExpandedH = 190;
+function topOccupied() { return Math.round(regionsEl.getBoundingClientRect().bottom) + 6; }
+function dockBase() { return Math.max(8, safeB); }
 function bottomOccupied() {
-  const dockBase = Math.max(8, safeB);
-  if (Q.active) return dockBase + quizEl.offsetHeight + 8 + dock.offsetHeight + 8;
   if (sheetState === 'half' || sheetState === 'full') return snapH(sheetState);
   if (sheetState === 'peek') return peekH + 8 + dock.offsetHeight + 8;
-  return dockBase + dock.offsetHeight + 8;
+  return dockBase() + dock.offsetHeight + 8;
 }
-function topOccupied() { return Q.active ? safeT + 8 : safeT + 64; }
-function computeShift(instant) {
-  viewShiftTarget = (bottomOccupied() - topOccupied()) / 2;
-  if (instant) viewShift = viewShiftTarget;
-  requestRender();
-}
-function fitDistance(size, bottomOcc, topOcc) {
-  const availH = Math.max(200, H - topOcc - bottomOcc);
-  const tanV = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
-  const dV = (size.y / 2 * 1.04 + size.z / 4) / tanV * (H / availH);
-  const dH = (Math.max(size.x, size.z) / 2 * 1.15 + size.z / 2) / (tanV * camera.aspect);
-  return Math.max(dV, dH);
+// The projection centre is fixed (never changes on select / collapse): the middle of the free area with the dock expanded.
+function computeShift() {
+  const bottomExpanded = dockBase() + dockExpandedH + 8;
+  const nv = (bottomExpanded - topOccupied()) / 2;
+  if (Math.abs(nv - viewShift) > .5) { viewShift = nv; applyViewOffset(); }
 }
 
-/* ------------------------------------------------------------------ model load */
-async function loadModel() {
-  setProgress(null, 'Loading model');
+const _right = new THREE.Vector3(), _up = new THREE.Vector3(), _dirV = new THREE.Vector3(), _cc = new THREE.Vector3();
+const _Y = new THREE.Vector3(0, 1, 0);
+// Place the camera so `box` fits the free screen area [top, H - bottom], viewed from direction `dir` (unit vector target -> camera).
+function fitBox(box, dir, bottomOcc, minDist = .12) {
+  _dirV.copy(dir).normalize();
+  _right.crossVectors(_Y, _dirV); if (_right.lengthSq() < 1e-6) _right.set(1, 0, 0); _right.normalize();
+  _up.crossVectors(_dirV, _right).normalize();
+  box.getCenter(_cc);
+  let hx = 0, hy = 0, hz = 0;
+  const mn = box.min, mx = box.max;
+  for (let i = 0; i < 8; i++) {
+    const x = (i & 1 ? mx.x : mn.x) - _cc.x, y = (i & 2 ? mx.y : mn.y) - _cc.y, z = (i & 4 ? mx.z : mn.z) - _cc.z;
+    hx = Math.max(hx, Math.abs(x * _right.x + y * _right.y + z * _right.z));
+    hy = Math.max(hy, Math.abs(x * _up.x + y * _up.y + z * _up.z));
+    hz = Math.max(hz, Math.abs(x * _dirV.x + y * _dirV.y + z * _dirV.z));
+  }
+  const top = topOccupied(), area = Math.max(160, H - top - bottomOcc);
+  const tanV = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
+  const zV = hy * H / (tanV * .94 * area), zH = hx * H / (tanV * .95 * (W - 20));
+  const d = Math.max(zV + hz, zH + hz, minDist);
+  const yStar = top + area / 2, yc = H / 2 - viewShift;
+  const wpp = 2 * d * tanV / H;
+  const target = _cc.clone().addScaledVector(_up, -(yc - yStar) * wpp);
+  return { target, dist: d, dir: _dirV.clone() };
+}
+function moveCamera(g, dur = 650) {
+  const fromT = controls.target.clone(), fromD = camera.position.distanceTo(fromT);
+  const fromV = camera.position.clone().sub(fromT).normalize(), toV = g.dir.clone().normalize();
+  cancelCameraTween();
+  const tt = new THREE.Vector3(), vv = new THREE.Vector3();
+  const tw = tween(dur, k => {
+    tt.copy(fromT).lerp(g.target, k);
+    vv.copy(fromV).lerp(toV, k).normalize();
+    controls.target.copy(tt);
+    camera.position.copy(tt).addScaledVector(vv, fromD + (g.dist - fromD) * k);
+    camera.lookAt(tt);
+  });
+  cameraTween = tw;
+}
+const _bx = new THREE.Box3(), _bt = new THREE.Box3();
+function boxOfParts(list, t = S.explodeTarget) {
+  _bx.makeEmpty();
+  for (const p of list) { partOffset(p, t, _o); _bt.copy(p.box0).translate(_o); _bx.union(_bt); }
+  return _bx.clone();
+}
+function viewDirFor(regionId) {
+  const cur = camera.position.clone().sub(controls.target).normalize();
+  if (regionId === 'back') { if (cur.z > -.2) { cur.z = -Math.abs(cur.z) - .6; } }
+  else if (cur.z < .1) { cur.z = Math.abs(cur.z) + .6; }
+  cur.y = clamp(cur.y, -.35, .5);
+  return cur.normalize();
+}
+function frameRegion(id = S.region, dur = 700) {
+  const list = parts.filter(p => p.vis);
+  if (!list.length) return;
+  const reg = id === 'all' ? parts : parts.filter(p => p.region === id);
+  const g = fitBox(boxOfParts(reg.some(p => p.vis) ? reg.filter(p => p.vis) : reg), viewDirFor(id), bottomOccupied());
+  moveCamera(g, dur);
+}
+function resetView() {
+  const id = S.region, reg = (id === 'all' ? parts : parts.filter(p => p.region === id));
+  const vis = reg.filter(p => p.vis);
+  const dir = new THREE.Vector3(0, .06, id === 'back' ? -1 : 1);
+  moveCamera(fitBox(boxOfParts(vis.length ? vis : reg), dir, bottomOccupied()));
+}
+function frameParts(list) {
+  // never zoom closer than a sensible minimum for tiny structures
+  moveCamera(fitBox(boxOfParts(list), camera.position.clone().sub(controls.target).normalize(), bottomOccupied(), .24));
+}
+
+/* ------------------------------------------------------------------ data + model loading */
+async function fetchJSON(url) {
+  const r = await fetch(url); if (!r.ok) throw new Error(url + ' ' + r.status);
+  return r.json();
+}
+async function fetchBuffer(url, onBytes) {
+  const res = await fetch(url);
+  if (!res.ok) throw Object.assign(new Error(url + ' ' + res.status), { kind: 'model' });
+  if (!res.body || !res.body.getReader) { const b = await res.arrayBuffer(); onBytes(b.byteLength); return b; }
+  const len = +res.headers.get('content-length') || 0;
+  const reader = res.body.getReader();
+  let out = len ? new Uint8Array(len) : null, got = 0; const chunks = [];
+  for (;;) {
+    const { done, value } = await reader.read(); if (done) break;
+    if (out && got + value.length <= out.length) out.set(value, got); else { if (out) { chunks.push(out.subarray(0, got)); out = null; } chunks.push(value); }
+    got += value.length; onBytes(value.length);
+  }
+  if (out) return out.buffer.slice(0, got);
+  const all = new Uint8Array(got); let o = 0; for (const c of chunks) { all.set(c, o); o += c.length; } return all.buffer;
+}
+
+async function loadAll() {
+  setProgress(null, 'Reading the atlas', ' ');
+  DATA = await fetchJSON('./data/parts.json').catch(e => { throw Object.assign(e, { kind: 'data' }); });
+  const cardsP = fetchJSON('./data/cards.json').catch(() => ({ cards: {}, glossary: [] }));
+  const files = DATA.files || [];
+  const total = Math.max(1, files.reduce((s, f) => s + (f.bytes || 0), 0));
+  let loaded = 0, lastUI = 0;
+  const showBytes = () => {
+    const now = performance.now(); if (now - lastUI < 60 && loaded < total) return; lastUI = now;
+    const f = Math.min(1, loaded / total);
+    setProgress(f, f >= 1 ? 'Preparing the model' : 'Loading the body', Math.floor(f * 100) + '%  ·  ' + (Math.min(loaded, total) / 1048576).toFixed(1) + ' / ' + (total / 1048576).toFixed(1) + ' MB');
+  };
   const draco = new DRACOLoader();
   draco.setDecoderPath('https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/libs/draco/gltf/');
+  draco.setWorkerLimit(Math.min(4, Math.max(2, navigator.hardwareConcurrency || 4)));
   const loader = new GLTFLoader(); loader.setDRACOLoader(draco);
-  const annP = fetch('./anatomy.json').then(r => { if (!r.ok) throw new Error('anatomy.json ' + r.status); return r.json(); })
-    .catch(e => { throw Object.assign(new Error(String(e && e.message)), { kind: 'data' }); });
-  annP.catch(() => {}); // handled below; avoids an unhandled-rejection report if the model fails first
-  const gltf = await new Promise((res, rej) => loader.load('./arm.glb', res, ev => {
-    if (ev.lengthComputable && ev.total > 0) setProgress(ev.loaded / ev.total * .92, 'Loading model ' + Math.round(ev.loaded / ev.total * 100) + '%');
-    else setProgress(null, 'Loading model ' + (ev.loaded / 1048576).toFixed(1) + ' MB');
-  }, e => rej(Object.assign(new Error(String(e && e.message)), { kind: 'model' }))));
-  setProgress(.94, 'Loading anatomy data');
-  anatomy = await annP;
-  setProgress(.97, 'Preparing');
+  setProgress(0, 'Loading the body', '0%  ·  0.0 / ' + (total / 1048576).toFixed(1) + ' MB');
+  // all files in parallel; each is decoded as soon as its bytes are in
+  const gltfs = await Promise.all(files.map(f => fetchBuffer(f.url, n => { loaded += n; showBytes(); })
+    .then(buf => loader.parseAsync(buf, ''))
+    .catch(e => { throw Object.assign(e instanceof Error ? e : new Error(String(e)), { kind: 'model' }); })));
+  loaded = total; showBytes();
+  const cd = await cardsP; CARDS = cd.cards || {}; GLOSSARY = cd.glossary || [];
+  setProgress(1, 'Building the body', '100%');
   draco.dispose();
-  await new Promise(r => setTimeout(r, 0));
+  await new Promise(r => setTimeout(r, 30));
+  return gltfs;
+}
 
-  const root = gltf.scene;
-  pivot.add(root);
-  const all = new THREE.Box3().setFromObject(root);
-  const c = all.getCenter(new THREE.Vector3());
-  root.position.sub(c);
-  root.updateMatrixWorld(true);
-
-  const san = n => n.replace(/\s/g, '_').replace(/[\[\]\.:\/]/g, '');
-  const byName = new Map();
-  for (const p of anatomy.parts) { byName.set(p.mesh, p); byName.set(san(p.mesh), p); }
-  const nodesFound = new Map();
-  root.traverse(o => {
-    const n = (o.userData && o.userData.name) || o.name;
-    if (!n) return;
-    const p = byName.get(n) || byName.get(san(n)) || byName.get(o.name);
-    if (p && !nodesFound.has(p.id) && (o.isMesh || o.isGroup || o.children.length || o.isObject3D)) {
-      // prefer the outermost object carrying the part's name that actually contains meshes
-      let has = false; o.traverse(m => { if (m.isMesh) has = true; });
-      if (has) nodesFound.set(p.id, o);
-    }
-  });
-
-  const box = new THREE.Box3(), sz = new THREE.Vector3(), ctr = new THREE.Vector3();
-  let missing = 0;
-  for (const d of anatomy.parts) {
-    const node = nodesFound.get(d.id);
+function buildParts(gltfs) {
+  // node lookup by original glTF node name (GLTFLoader sanitises .name, but keeps the original in userData.name)
+  const nodeByName = new Map();
+  const hasMesh = o => { if (o.isMesh) return true; for (const c of o.children) if (hasMesh(c)) return true; return false; };
+  for (const g of gltfs) {
+    body.add(g.scene);
+    g.scene.traverse(o => {
+      if (o === g.scene) return;
+      const n = (o.userData && o.userData.name) || o.name; if (!n || nodeByName.has(n)) return;
+      if (hasMesh(o)) nodeByName.set(n, o);
+    });
+  }
+  const san = n => n.replace(/\s/g, '_').replace(/[\[\].:/]/g, '');
+  const sanMap = new Map(); for (const [k, v] of nodeByName) sanMap.set(san(k), v);
+  parts = []; let missing = 0;
+  const tmp = new THREE.Box3();
+  for (const d of DATA.parts) {
+    const node = nodeByName.get(d.mesh) || sanMap.get(san(d.mesh));
     if (!node) { missing++; continue; }
     const meshes = []; node.traverse(m => { if (m.isMesh) meshes.push(m); });
-    const part = Object.assign({}, d, {
-      node, meshes, tendonMeshes: [], basePos: node.position.clone(), tier: d.tier || 0, radial: d.radial || 0,
-      dir: d.dir || [0, 0, 1], card: d.card || null,
-    });
-    part.title = partTitle(part);
+    const p = {
+      i: parts.length, mesh: d.mesh, card: d.card || null, side: d.side || 'M', label: d.label || d.mesh, type: d.type, layer: d.layer, region: d.region,
+      tier: d.tier || 0, radial: d.radial || 0, dir: d.dir || [0, 0, 1], node, meshes, tendonMeshes: [], vis: true, st: '', box0: new THREE.Box3(), c0: new THREE.Vector3(), radius: .01,
+    };
+    p.key = p.card || ('mesh:' + p.mesh);
     for (const m of meshes) {
-      const mn = (m.material && m.material.name) || 'Muscle';
-      m.userData.matName = MAT_DEFS[mn] ? mn : 'Muscle';
-      m.userData.part = part;
-      m.material = getMat('base', m.userData.matName);
-      m.matrixAutoUpdate = true;
-      if (m.userData.matName === 'Tendon') part.tendonMeshes.push(m);
+      let cn = (m.material && m.material.name) || '';
+      if (cn === 'Muscle') cn = MUSCLE_VARIANT[p.layer] || 'Muscle';
+      if (!CLS[cn]) cn = TYPE_DEFAULT_CLS[p.type] || 'Organ_other';
+      m.userData.part = p; m.userData.cls = cn;
+      if ((m.material && m.material.name) === 'Tendon') p.tendonMeshes.push(m);
+      if (m.material && m.material !== getBase(cn)) { if (m.material.dispose) m.material.dispose(); }
+      m.material = getBase(cn);
+      if (!m.geometry.boundingBox) m.geometry.computeBoundingBox();
+      if (!m.geometry.boundingSphere) m.geometry.computeBoundingSphere();
+      tmp.copy(m.geometry.boundingBox); p.box0.union(tmp);
     }
-    box.setFromObject(node); box.getCenter(ctr); box.getSize(sz);
-    part.c0 = ctr.clone(); part.radius = Math.max(.004, sz.length() / 2);
-    part.sort = part.title;
-    parts.push(part); partsById.set(part.id, part); partsByMesh.set(part.mesh, part);
+    node.matrixAutoUpdate = false;           // single translation per part, written by the explode loop
+    node.updateMatrix(); node.matrixWorldNeedsUpdate = true;
+    if (p.box0.isEmpty()) p.box0.set(new THREE.Vector3(...d.centroid).subScalar(.01), new THREE.Vector3(...d.centroid).addScalar(.01));
+    p.box0.getCenter(p.c0); p.radius = Math.max(.004, p.box0.getSize(_o).length() / 2);
+    p.region = p.region || 'all';
+    // Data guard: some hand ligaments and foot vessels arrive tagged 'pelvis' (their height matches the pelvis). Re-home by position.
+    if (p.region === 'pelvis' && d.centroid) { const cx = d.centroid[0], cy = d.centroid[1]; if (Math.abs(cx) > .2) p.region = 'arm'; else if (cy < .6) p.region = 'leg'; }
+    parts.push(p);
   }
-  if (missing) console.warn('Parts missing from glb:', missing);
+  if (missing) console.warn('Parts missing from glb:', missing, 'of', DATA.parts.length);
+  window.__missing = missing;
   if (!parts.length) throw Object.assign(new Error('No parts in the 3D model matched the part list.'), { kind: 'mismatch' });
-  home.target.set(0, 0, 0);
-  return all.getSize(new THREE.Vector3());
+  // explode vectors (computed once)
+  offs = new Float32Array(parts.length * 3); basePos = new Float32Array(parts.length * 3);
+  for (const p of parts) {
+    const m = 0.035 * p.tier + 0.6 * p.radial, j = p.i * 3;
+    offs[j] = p.dir[0] * m; offs[j + 1] = p.dir[1] * m; offs[j + 2] = p.dir[2] * m;
+    basePos[j] = p.node.position.x; basePos[j + 1] = p.node.position.y; basePos[j + 2] = p.node.position.z;
+  }
+  // card index: left + right (+ midline) share one entry
+  cardIdx = new Map();
+  for (const p of parts) {
+    let c = cardIdx.get(p.key);
+    if (!c) { c = { key: p.key, parts: [], card: CARDS[p.card] || null, type: p.type, layer: p.layer, region: p.region }; cardIdx.set(p.key, c); }
+    c.parts.push(p); p.c = c;
+  }
+  for (const c of cardIdx.values()) {
+    const p0 = c.parts[0];
+    c.name = (c.card && c.card.name) || cleanName(p0.label);
+    c.latin = (c.card && c.card.latin) || '';
+    c.sides = new Set(c.parts.map(p => p.side));
+    for (const p of c.parts) p.title = c.name;
+  }
+  return parts.length;
 }
 
-/* ------------------------------------------------------------------ appearance */
-function setHighlights(map) { S.hl = map; refreshAppearance(); }
-function refreshAppearance() {
-  const hl = new Map(S.hl);
-  if (S.selected && !hl.has(S.selected.id)) hl.set(S.selected.id, 'sel');
-  const ghostOthers = hl.size > 0 && (S.isolate || S.quizGhost);
-  for (const p of parts) {
-    const kind = hl.get(p.id) || (ghostOthers ? 'ghost' : 'base');
-    if (p._kind === kind) continue;
-    p._kind = kind;
-    for (const m of p.meshes) m.material = getMat(kind, m.userData.matName);
-    p.node.traverse(m => { if (m.isMesh) m.renderOrder = kind === 'ghost' ? 1 : 0; });
+/* ------------------------------------------------------------------ static merge for rendering (draw-call budget)
+   The 2,974 per-part meshes stay in the scene for picking and exploding, but while nothing is exploded they are hidden and the
+   same triangles are drawn from ~200 merged buckets (layer x region x colour class). Merged buckets are toggled, never rebuilt. */
+let buckets = [], mergedReady = false;
+function buildMerged() {
+  body.updateMatrixWorld(true);
+  const groups = new Map();
+  for (const p of parts) for (const m of p.meshes) {
+    const k = p.layer + '|' + p.region + '|' + m.userData.cls;
+    let g = groups.get(k); if (!g) { g = { layer: p.layer, region: p.region, cls: m.userData.cls, meshes: [] }; groups.set(k, g); }
+    g.meshes.push(m);
   }
+  const v = new THREE.Vector3(), n = new THREE.Vector3(), nm = new THREE.Matrix3();
+  for (const g of groups.values()) {
+    let nv = 0, ni = 0;
+    for (const m of g.meshes) { const geo = m.geometry; nv += geo.attributes.position.count; ni += geo.index ? geo.index.count : geo.attributes.position.count; }
+    const pos = new Float32Array(nv * 3), nor = new Float32Array(nv * 3), ex = new Float32Array(nv * 3), idx = nv > 65535 ? new Uint32Array(ni) : new Uint16Array(ni);
+    let vo = 0, io = 0;
+    for (const m of g.meshes) {
+      const geo = m.geometry, P = geo.attributes.position, N = geo.attributes.normal, I = geo.index;
+      nm.getNormalMatrix(m.matrixWorld);
+      const pj = m.userData.part.i * 3, ox = offs[pj], oy = offs[pj + 1], oz = offs[pj + 2];
+      for (let i = 0; i < P.count; i++) {
+        v.fromBufferAttribute(P, i).applyMatrix4(m.matrixWorld);
+        pos[(vo + i) * 3] = v.x; pos[(vo + i) * 3 + 1] = v.y; pos[(vo + i) * 3 + 2] = v.z;
+        ex[(vo + i) * 3] = ox; ex[(vo + i) * 3 + 1] = oy; ex[(vo + i) * 3 + 2] = oz;
+        if (N) { n.fromBufferAttribute(N, i).applyMatrix3(nm).normalize(); nor[(vo + i) * 3] = n.x; nor[(vo + i) * 3 + 1] = n.y; nor[(vo + i) * 3 + 2] = n.z; }
+      }
+      if (I) for (let i = 0; i < I.count; i++) idx[io++] = I.getX(i) + vo; else for (let i = 0; i < P.count; i++) idx[io++] = vo + i;
+      vo += P.count;
+    }
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.BufferAttribute(pos, 3)); geo.setAttribute('normal', new THREE.BufferAttribute(nor, 3)); geo.setAttribute('aExp', new THREE.BufferAttribute(ex, 3)); geo.setIndex(new THREE.BufferAttribute(idx, 1));
+    geo.computeBoundingSphere();
+    const mesh = new THREE.Mesh(geo, getMBase(g.cls)); mesh.visible = false; mesh.matrixAutoUpdate = false; mesh.frustumCulled = false; mesh.userData.bucket = g;
+    mergedRoot.add(mesh); g.mesh = mesh; buckets.push(g);
+  }
+  mergedReady = true;
+}
+const mergedRoot = new THREE.Group(); scene.add(mergedRoot);
+function bucketVisible(g) { return !!S.layers[g.layer] && (S.region === 'all' || g.region === S.region) && (g.cls !== 'Tendon' || S.tendons); }
+// Everything is drawn from the merged buckets (explode runs in the vertex shader). The only per-part meshes drawn are the
+// isolated structure (solid, at its CPU explode position); every other per-part mesh stays hidden and is used for picking.
+function syncRender() {
+  if (!parts.length) return;
+  const sel = S.sel;
+  for (const g of buckets) {
+    const on = bucketVisible(g); g.mesh.visible = on;
+    if (on) { const want = sel ? getGhost(g.cls) : getMBase(g.cls); if (g.mesh.material !== want) g.mesh.material = want; }
+  }
+  for (const p of parts) p.node.visible = !!sel && p.vis && p.c === sel;
+  if (sel) refreshWorld();
+}
+let worldDirty = false;
+function refreshWorld() { if (worldDirty) { body.updateMatrixWorld(true); worldDirty = false; } }
+
+/* ------------------------------------------------------------------ appearance: tap = isolate (ghost style) */
+function applyAppearance() {
+  const sel = S.sel;
+  for (const p of parts) {
+    const want = !sel ? 'base' : (p.c === sel ? 'sel' : 'ghost');
+    if (p.st === want) continue;
+    p.st = want;
+    const lib = want === 'sel' ? getSel : getBase;   // per-part meshes are only ever drawn when selected; ghosts come from the merged buckets
+    for (const m of p.meshes) m.material = lib(m.userData.cls);
+  }
+  syncRender();
   requestRender();
 }
-function partVisible(p) { return !!S.layers[p.layer]; }
 function applyVisibility() {
   for (const p of parts) {
-    const on = !!S.layers[p.layer];
-    p.node.visible = on;
-    for (const m of p.tendonMeshes) m.visible = S.layers.tendon;
+    const on = !!S.layers[p.layer] && (S.region === 'all' || p.region === S.region);
+    p.vis = on;
+    if (on) for (const m of p.tendonMeshes) m.visible = S.tendons;
+    else for (const m of p.tendonMeshes) m.visible = true;
   }
-  if (S.selected && !partVisible(S.selected)) clearSelection();
+  pickList = null; labelBuckets = null;
+  if (S.sel && !S.sel.parts.some(p => p.vis)) clearSelection();
+  syncRender();
   updateChips(); updatePeel();
-  if (Q.active && Q.cur && !Q.answered && !partVisible(Q.cur)) nextQuestion();
+  requestRender();
+}
+
+/* ------------------------------------------------------------------ region picker */
+function buildRegions() {
+  regionsEl.textContent = '';
+  const list = [{ id: 'all', name: 'All' }, ...(DATA.regions || [])];
+  for (const r of list) {
+    regionName.set(r.id, r.name);
+    const b = el('button', 'rg', r.name); b.dataset.region = r.id; b.setAttribute('role', 'tab'); b.setAttribute('aria-selected', String(r.id === S.region));
+    b.addEventListener('click', () => setRegion(r.id));
+    regionsEl.append(b);
+  }
+}
+function setRegion(id, { frame = true } = {}) {
+  S.region = id;
+  for (const b of $$('.rg', regionsEl)) {
+    const on = b.dataset.region === id; b.setAttribute('aria-selected', String(on));
+    if (on) b.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' });
+  }
+  applyVisibility();
+  if (frame) frameRegion(id);
   requestRender();
 }
 
 /* ------------------------------------------------------------------ layer chips + peel */
 const chipsEl = $('#chips');
-for (const [id, label, color] of CHIPS) {
-  const b = el('button', 'chip'); b.dataset.layer = id; b.setAttribute('aria-pressed', 'true');
-  const d = el('span', 'dot'); d.style.background = color; b.append(d, document.createTextNode(label));
-  b.addEventListener('click', () => { S.layers[id] = !S.layers[id]; applyVisibility(); });
-  chipsEl.append(b);
+function buildChips() {
+  chipsEl.textContent = '';
+  const have = new Set((DATA.layers || []).map(l => l.id));
+  for (const l of DATA.layers || []) layerName.set(l.id, l.name);
+  layerName.set('tendon', 'Tendons');
+  const ids = CHIP_ORDER.filter(id => id === 'tendon' || have.has(id));
+  for (const l of DATA.layers || []) if (!ids.includes(l.id)) ids.push(l.id);
+  for (const [lab, on] of [['Show all', true], ['Hide all', false]]) {
+    const b = el('button', 'chip act', lab); b.dataset.act = on ? 'all' : 'none';
+    b.addEventListener('click', () => { for (const l of DATA.layers || []) S.layers[l.id] = on; S.tendons = on; applyVisibility(); });
+    chipsEl.append(b);
+  }
+  for (const id of ids) {
+    const b = el('button', 'chip'); b.dataset.layer = id; b.setAttribute('aria-pressed', 'true');
+    const d = el('span', 'dot'); d.style.background = LAYER_COLOR[id] || '#9aa'; b.append(d, document.createTextNode(layerName.get(id) || id));
+    b.addEventListener('click', () => {
+      if (id === 'tendon') S.tendons = !S.tendons; else S.layers[id] = !S.layers[id];
+      applyVisibility();
+    });
+    chipsEl.append(b);
+  }
 }
-function updateChips() { for (const b of $$('.chip', chipsEl)) b.setAttribute('aria-pressed', String(!!S.layers[b.dataset.layer])); }
-function peelLevel() { let n = 0; for (const l of PEEL_ORDER) { if (!S.layers[l]) n++; else break; } return n; }
+function updateChips() {
+  for (const b of $$('.chip[data-layer]', chipsEl)) b.setAttribute('aria-pressed', String(b.dataset.layer === 'tendon' ? !!S.tendons : !!S.layers[b.dataset.layer]));
+  for (const p of parts) for (const m of p.tendonMeshes) if (p.vis) m.visible = S.tendons;
+}
+let peelOrder = [];
+function peelLevel() { let n = 0; for (const l of peelOrder) { if (!S.layers[l]) n++; else break; } return n; }
 function updatePeel() {
-  const n = peelLevel();
-  $('#peelLbl').textContent = 'Peel ' + n + '/3';
+  const n = peelLevel(), tot = peelOrder.length;
+  $('#peelLbl').textContent = 'Peel ' + n + '/' + tot;
+  $('#peelSub').textContent = n === 0 ? 'Nothing peeled' : (layerName.get(peelOrder[n - 1]) || '') + ' off';
   $('#peelMinus').disabled = n === 0;
 }
 $('#peelPlus').addEventListener('click', () => {
   const n = peelLevel();
-  if (n >= 3) { for (const l of PEEL_ORDER) S.layers[l] = true; }
-  else S.layers[PEEL_ORDER[n]] = false;
+  if (n >= peelOrder.length) { for (const l of peelOrder) S.layers[l] = true; } else S.layers[peelOrder[n]] = false;
   applyVisibility();
 });
 $('#peelMinus').addEventListener('click', () => {
-  const n = peelLevel(); if (n > 0) { S.layers[PEEL_ORDER[n - 1]] = true; applyVisibility(); }
+  const n = peelLevel(); if (n > 0) { S.layers[peelOrder[n - 1]] = true; applyVisibility(); }
 });
 
-/* ------------------------------------------------------------------ explode UI */
+/* ------------------------------------------------------------------ explode UI (never moves the camera) */
 const slider = $('#explode'), pct = $('#pct'), btnExplode = $('#btnExplode');
 let sliderDragging = false;
-let modelSize = new THREE.Vector3(.3, .8, .2);
-let explodeZoom = null; // { from, to } camera distances when we zoomed out for the explode
-function ensureExplodeFit() {
-  const t = controls.target.clone(), d = camera.position.distanceTo(t);
-  const need = home.dist * (1 + .42 * S.explodeTarget);
-  if (S.explodeTarget > .05 && d < need) { explodeZoom = { from: d, to: need }; tweenCamera(t, need); }
-  else if (S.explodeTarget <= .05 && explodeZoom && Math.abs(d - explodeZoom.to) / explodeZoom.to < .1) { tweenCamera(t, explodeZoom.from); explodeZoom = null; }
-  else if (S.explodeTarget <= .05) explodeZoom = null;
-}
 function syncExplodeUI() {
   const v = Math.round(S.explode * 100);
   if (!sliderDragging) slider.value = v;
@@ -741,143 +1003,154 @@ function syncExplodeUI() {
 }
 slider.addEventListener('input', () => { sliderDragging = true; S.explodeTarget = slider.value / 100; syncExplodeUI(); requestRender(); });
 const endDrag = () => { sliderDragging = false; syncExplodeUI(); };
-slider.addEventListener('change', () => { endDrag(); ensureExplodeFit(); }); slider.addEventListener('pointerup', endDrag); slider.addEventListener('touchend', endDrag);
-btnExplode.addEventListener('click', () => { sliderDragging = false; S.explodeTarget = S.explodeTarget > .5 ? 0 : 1; syncExplodeUI(); ensureExplodeFit(); requestRender(); });
+slider.addEventListener('change', endDrag); slider.addEventListener('pointerup', endDrag); slider.addEventListener('touchend', endDrag);
+btnExplode.addEventListener('click', () => { sliderDragging = false; S.explodeTarget = S.explodeTarget > .5 ? 0 : 1; syncExplodeUI(); requestRender(); });
 
 /* ------------------------------------------------------------------ toggles */
-$('#btnIso').addEventListener('click', e => {
-  S.isolate = !S.isolate; e.currentTarget.setAttribute('aria-pressed', String(S.isolate)); refreshAppearance();
-});
 function setLabels(on) {
   S.labels = on; $('#btnLabels').setAttribute('aria-pressed', String(on));
-  if (!on) { for (const e of labelPool) e.style.display = 'none'; }
+  if (!on) for (const e of labelPool) e.style.display = 'none';
   requestRender();
 }
 $('#btnLabels').addEventListener('click', () => setLabels(!S.labels));
 const dockToggle = $('#dockToggle');
 function setDockCollapsed(c) {
   dock.classList.toggle('collapsed', c); dockToggle.setAttribute('aria-expanded', String(!c));
-  requestAnimationFrame(() => computeShift(false));
 }
-dockToggle.addEventListener('click', () => setDockCollapsed(!dock.classList.contains('collapsed')));
+dockToggle.addEventListener('click', () => { setDockCollapsed(!dock.classList.contains('collapsed')); requestRender(); });
 if ('ResizeObserver' in window) {
-  const ro = new ResizeObserver(() => {
-    document.documentElement.style.setProperty('--quiz-h', (Q.active ? quizEl.offsetHeight : 0) + 'px');
-    computeShift(false);
-  });
-  ro.observe(dock); ro.observe(quizEl);
+  new ResizeObserver(() => {
+    if (!dock.classList.contains('collapsed') && dock.offsetHeight > 40) {
+      if (Math.abs(dock.offsetHeight - dockExpandedH) > 3) { dockExpandedH = dock.offsetHeight; computeShift(); requestRender(); }
+    }
+  }).observe(dock);
 }
 
-/* ------------------------------------------------------------------ labels */
-const labelsEl = $('#labels'), labelPool = [], railEl = $('#rail');
+/* ------------------------------------------------------------------ labels: per-region declutter, capped */
+const labelsEl = $('#labels'), labelPool = [];
 const lctx = document.createElement('canvas').getContext('2d');
-lctx.font = '600 11px -apple-system, system-ui, sans-serif';
-const _p = new THREE.Vector3(), _o = new THREE.Vector3();
+const _p = new THREE.Vector3();
+let labelBuckets = null, labelFontPx = 0;
+const LAYER_DEPTH = { muscle_superficial: 0, muscle_mid: 1, muscle_deep: 2, vein: 2, artery: 2, nerve: 2, organ: 3, ligament: 3, bone: 4, cns: 5 };
+const depthOf = p => LAYER_DEPTH[p.layer] != null ? LAYER_DEPTH[p.layer] : 3;
 function labelWidth(p) {
   if (p._lw) return p._lw;
-  p._lw = Math.min(130, Math.ceil(lctx.measureText(p.title).width) + 28); return p._lw;
+  const px = parseFloat(getComputedStyle(document.documentElement).fontSize) * .72 || 12;
+  if (px !== labelFontPx) { labelFontPx = px; lctx.font = '650 ' + px + 'px -apple-system, system-ui, sans-serif'; }
+  p._lw = Math.min(px * 15 + 2, Math.ceil(lctx.measureText(p.title).width) + px * 2.1); return p._lw;
 }
-function updateLabels() {
-  const topLim = safeT + 62, botLim = H - bottomOccupied() + 4;
-  const railR = railEl.getBoundingClientRect();
-  const cands = [];
+// Rebuilt whenever visibility changes: only parts you can currently see, only the outer visible layers (so a label never
+// names something buried under a layer that is still on), one list per region so labels spread across the body.
+function buildLabelBuckets() {
+  let minD = 99; for (const p of parts) if (p.vis) minD = Math.min(minD, depthOf(p));
+  const by = new Map();
   for (const p of parts) {
-    if (!partVisible(p)) continue;
-    explodeOffset(p, S.explode, _o);
-    _p.copy(p.c0).add(_o).project(camera);
-    if (_p.z > 1 || _p.z < -1) continue;
-    // account for the camera view offset (projection already includes it)
-    const x = (_p.x * .5 + .5) * W, y = (-_p.y * .5 + .5) * H;
-    if (x < 8 || x > W - 8 || y < topLim || y > botLim) continue;
-    const sel = p === S.selected || S.hl.has(p.id);
-    const score = sel ? 1e9 : p.radius * (1 + p.tier * .35);
-    cands.push({ p, x, y, score, sel });
+    if (!p.vis || depthOf(p) > minD + 1) continue;
+    if (!by.has(p.region)) by.set(p.region, []); by.get(p.region).push(p);
   }
-  cands.sort((a, b) => b.score - a.score);
-  const placed = [];
-  const obstacles = Q.active ? [] : [{ x0: railR.left - 4, x1: railR.right + 4, y0: railR.top - 4, y1: railR.bottom + 4 }];
-  const MAX = 20;
-  for (const c of cands) {
-    if (placed.length >= MAX) break;
-    const w = labelWidth(c.p), h = 22;
-    const r = { x0: c.x - w / 2, x1: c.x + w / 2, y0: c.y - h / 2, y1: c.y + h / 2 };
+  labelBuckets = [...by.values()].map(a => a.sort((x, y) => (y.radius * (1 + y.tier * .35)) - (x.radius * (1 + x.tier * .35))));
+  labelIdx = new Int32Array(labelBuckets.length);
+}
+let labelIdx = new Int32Array(8);
+const rectPool = []; for (let i = 0; i < MAX_LABELS + 4; i++) rectPool.push({ x0: 0, x1: 0, y0: 0, y1: 0, p: null, sel: false });
+const placed = [], obstacles = [{ x0: 0, x1: 0, y0: 0, y1: 0 }];
+const _cam = new THREE.Vector3();
+let labelEpoch = 0;
+function updateLabels() {
+  if (!labelBuckets) buildLabelBuckets();
+  const topLim = topOccupied() + 2, botLim = H - bottomOccupied() + 4;
+  const rr = railEl.getBoundingClientRect();
+  const ob = obstacles[0]; ob.x0 = rr.left - 4; ob.x1 = rr.right + 4; ob.y0 = rr.top - 4; ob.y1 = rr.bottom + 4;
+  placed.length = 0;
+  labelEpoch++;
+  const h = labelFontPx ? labelFontPx * 1.9 : 22;
+  _cam.copy(camera.position);
+  const tryPlace = (p, force) => {
+    if (!force && p.c._lbl === labelEpoch) return false;   // one label per structure (left and right share a card)
+    partOffset(p, S.explode, _o);
+    _o.add(p.c0);
+    if (!force && p.dir && depthOf(p) <= 1) {   // skip superficial parts on the far side of the body
+      const dx = _cam.x - _o.x, dy = _cam.y - _o.y, dz = _cam.z - _o.z;
+      if ((p.dir[0] * dx + p.dir[1] * dy + p.dir[2] * dz) < 0) return false;
+    }
+    _p.copy(_o).project(camera);
+    if (_p.z > 1 || _p.z < -1) return false;
+    const x = (_p.x * .5 + .5) * W, y = (-_p.y * .5 + .5) * H;
+    if (x < 8 || x > W - 8 || y < topLim || y > botLim) return false;
+    const w = labelWidth(p), r = rectPool[placed.length];
+    r.x0 = x - w / 2; r.x1 = x + w / 2; r.y0 = y - h / 2; r.y1 = y + h / 2; r.p = p; r.sel = force;
     if (r.x0 < 4) { r.x1 += 4 - r.x0; r.x0 = 4; } if (r.x1 > W - 4) { r.x0 -= r.x1 - (W - 4); r.x1 = W - 4; }
-    let hit = false;
-    for (const q of obstacles.concat(placed)) if (r.x0 < q.x1 + 3 && r.x1 > q.x0 - 3 && r.y0 < q.y1 + 2 && r.y1 > q.y0 - 2) { hit = true; break; }
-    if (hit && !c.sel) continue;
-    r.p = c.p; r.sel = c.sel; placed.push(r);
+    if (force && r.x0 < ob.x1 + 3 && r.x1 > ob.x0 - 3 && r.y0 < ob.y1 + 2 && r.y1 > ob.y0 - 2) return false;
+    if (!force) {   // try the spot itself, then one slot down / up, before giving up
+      const y0 = r.y0, y1 = r.y1; let ok = false;
+      for (let s = 0; s < 3 && !ok; s++) {
+        const dy = s === 0 ? 0 : (s === 1 ? h + 3 : -(h + 3));
+        r.y0 = y0 + dy; r.y1 = y1 + dy;
+        if (r.y0 < topLim - 2 || r.y1 > botLim + 2) continue;
+        if (r.x0 < ob.x1 + 3 && r.x1 > ob.x0 - 3 && r.y0 < ob.y1 + 2 && r.y1 > ob.y0 - 2) continue;
+        ok = true;
+        for (let i = 0; i < placed.length; i++) { const q = placed[i]; if (r.x0 < q.x1 + 4 && r.x1 > q.x0 - 4 && r.y0 < q.y1 + 3 && r.y1 > q.y0 - 3) { ok = false; break; } }
+      }
+      if (!ok) return false;
+    }
+    p.c._lbl = labelEpoch; placed.push(r); return true;
+  };
+  if (S.sel) {
+    for (const p of S.sel.parts) if (p.vis && placed.length < MAX_LABELS) tryPlace(p, true);
+  } else {
+    labelIdx.fill(0);
+    let budget = 900, progress = true;
+    while (placed.length < MAX_LABELS && budget > 0 && progress) {
+      progress = false;
+      for (let b = 0; b < labelBuckets.length && placed.length < MAX_LABELS; b++) {
+        const arr = labelBuckets[b];
+        while (labelIdx[b] < arr.length && budget > 0) {
+          const p = arr[labelIdx[b]++]; budget--; progress = true;
+          if (tryPlace(p, false)) break;
+        }
+      }
+    }
   }
   while (labelPool.length < placed.length) { const e = el('div', 'lbl'); labelsEl.append(e); labelPool.push(e); }
   for (let i = 0; i < labelPool.length; i++) {
     const e = labelPool[i];
-    if (i >= placed.length) { e.style.display = 'none'; continue; }
+    if (i >= placed.length) { if (e._on !== false) { e.style.display = 'none'; e._on = false; } continue; }
     const r = placed[i];
-    if (e._pid !== r.p.id) { e._pid = r.p.id; e.textContent = ''; const d = el('i'); d.style.background = TYPE_COLOR[r.p.type] || '#999'; e.append(d, document.createTextNode(r.p.title)); }
-    e.classList.toggle('sel', !!r.sel);
-    e.style.display = '';
-    e.style.transform = `translate3d(${Math.round(r.x0)}px,${Math.round(r.y0)}px,0)`;
+    if (e._pid !== r.p.i) { e._pid = r.p.i; e.textContent = ''; const d = el('i'); d.style.background = TYPE_COLOR[r.p.type] || '#999'; e.append(d, document.createTextNode(r.p.title)); }
+    if (e._sel !== r.sel) { e._sel = r.sel; e.classList.toggle('sel', !!r.sel); }
+    if (e._on !== true) { e.style.display = ''; e._on = true; }
+    e.style.transform = 'translate3d(' + Math.round(r.x0) + 'px,' + Math.round(r.y0) + 'px,0)';
   }
 }
 
-/* ------------------------------------------------------------------ camera focus */
-function partCenter(p, t = S.explodeTarget, out = new THREE.Vector3()) {
-  explodeOffset(p, t, _o); return out.copy(p.c0).add(_o);
-}
-function focusPart(p) {
-  const target = partCenter(p);
-  const tanV = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
-  let d = p.radius / (.3 * tanV) * (H / Math.max(250, H - topOccupied() - bottomOccupied()));
-  d = clamp(d, 0.14, home.dist);
-  tweenCamera(target, d);
-}
-function tweenCamera(target, dist, dir, done) {
-  const fromT = controls.target.clone();
-  const fromD = camera.position.distanceTo(fromT);
-  const v = dir ? dir.clone().normalize() : camera.position.clone().sub(fromT).normalize();
-  const fromV = camera.position.clone().sub(fromT).normalize();
-  cancelCameraTween(false);
-  const tw = tween(520, k => {
-    const tt = fromT.clone().lerp(target, k);
-    const dd = fromD + (dist - fromD) * k;
-    const vv = fromV.clone().lerp(v, k).normalize();
-    controls.target.copy(tt);
-    camera.position.copy(tt).addScaledVector(vv, dd);
-    camera.lookAt(tt);
-  }, done);
-  cameraTween = tw;
-}
-$('#btnReset').addEventListener('click', () => tweenCamera(home.target.clone(), home.dist, new THREE.Vector3(0, 0, 1)));
+$('#btnReset').addEventListener('click', () => resetView());
 
-/* ------------------------------------------------------------------ picking */
+/* ------------------------------------------------------------------ picking: at most 3 rays, visible meshes only */
 const raycaster = new THREE.Raycaster();
 const _ndc = new THREE.Vector2();
-function pickableMeshes() {
+function pickables() {
+  if (pickList) return pickList;
   const list = [];
-  for (const p of parts) {
-    if (!p.node.visible) continue;
-    for (const m of p.meshes) if (m.visible) list.push(m);
-  }
-  return list;
+  for (const p of parts) { if (!p.vis) continue; for (const m of p.meshes) if (m.visible) list.push(m); }
+  return (pickList = list);
 }
 function rayPart(x, y, list) {
   _ndc.set(x / W * 2 - 1, -(y / H) * 2 + 1);
   raycaster.setFromCamera(_ndc, camera);
   const hits = raycaster.intersectObjects(list, false);
   if (!hits.length) return null;
-  const solid = hits.find(h => h.object.userData.part._kind !== 'ghost');
-  return (solid || hits[0]).object.userData.part;
+  for (const h of hits) { const p = h.object.userData.part; if (p.st !== 'ghost') return p; }  // a solid (selected) part beats ghosts in front of it
+  return hits[0].object.userData.part;
 }
-// Tap picking: at most 5 rays (centre + 4 probes around the fingertip for thin structures).
-function pickAt(cx, cy, ring = true) {
-  scene.updateMatrixWorld(true);
-  const list = pickableMeshes();
-  let p = rayPart(cx, cy, list);
-  if (p || !ring) return p;
-  for (const [dx, dy] of [[0, -18], [18, 0], [0, 18], [-18, 0]]) {
-    p = rayPart(cx + dx, cy + dy, list);
-    if (p) return p;
-  }
-  return null;
+let lastPick = { rays: 0, ms: 0 };
+function pickAt(cx, cy) {
+  const t0 = performance.now();
+  camera.updateMatrixWorld(); refreshWorld();
+  const list = pickables();
+  let rays = 1, p = rayPart(cx, cy, list);
+  if (!p) for (const dx of [-16, 16]) { rays++; p = rayPart(cx + dx, cy, list); if (p) break; }
+  lastPick = { rays, ms: performance.now() - t0 };
+  return p;
 }
 const canvasEl = renderer.domElement;
 const ptrs = new Set(); let tap = null;
@@ -890,10 +1163,9 @@ canvasEl.addEventListener('pointermove', e => {
   if (tap && tap.ok && Math.hypot(e.clientX - tap.x, e.clientY - tap.y) > 8) tap.ok = false;
 });
 canvasEl.addEventListener('pointerup', e => {
-  const was = tap;
-  const single = ptrs.size === 1;
+  const was = tap, single = ptrs.size === 1;
   ptrs.delete(e.pointerId);
-  if (was && was.ok && single && performance.now() - was.t < 300 && Math.hypot(e.clientX - was.x, e.clientY - was.y) < 8) onTap(e.clientX, e.clientY);
+  if (was && was.ok && single && performance.now() - was.t < 320 && Math.hypot(e.clientX - was.x, e.clientY - was.y) < 8) onTap(e.clientX, e.clientY);
   if (!ptrs.size) tap = null;
 });
 canvasEl.addEventListener('pointercancel', e => { ptrs.delete(e.pointerId); if (!ptrs.size) tap = null; else if (tap) tap.ok = false; });
@@ -901,26 +1173,35 @@ canvasEl.addEventListener('contextmenu', e => e.preventDefault());
 
 function onTap(x, y) {
   const p = pickAt(x, y);
-  if (Q.active) { quizTap(p); return; }
-  if (p) selectPart(p, { focus: true, sheet: sheetState === 'hidden' ? 'peek' : null });
+  if (p) selectCard(p.c, { frame: false, sheet: sheetState === 'hidden' ? 'peek' : null });
   else clearSelection();
 }
 
-/* ------------------------------------------------------------------ selection */
-function selectPart(p, { focus = true, sheet = null, fromSearch = false } = {}) {
-  if (fromSearch && !S.layers[p.layer]) { S.layers[p.layer] = true; applyVisibility(); }
-  const changed = S.selected !== p;
-  S.selected = p;
-  refreshAppearance();
-  renderSheet(p);
+/* ------------------------------------------------------------------ selection (isolates; never moves the camera by itself) */
+function selectCard(c, { frame = false, sheet = null, fromSearch = false } = {}) {
+  if (fromSearch) {
+    let changed = false;
+    if (S.region !== 'all' && c.parts.some(p => p.region !== S.region)) { S.region = 'all'; changed = true; for (const b of $$('.rg', regionsEl)) b.setAttribute('aria-selected', String(b.dataset.region === 'all')); }
+    for (const p of c.parts) {
+      if (!S.layers[p.layer]) { S.layers[p.layer] = true; changed = true; }
+      if (p.tendonMeshes.length && !S.tendons && p.meshes.every(m => p.tendonMeshes.includes(m))) { S.tendons = true; changed = true; }
+    }
+    if (changed || c.parts.some(p => !p.vis)) applyVisibility();
+    const all = $('.rg[data-region="all"]'); if (all && changed) all.scrollIntoView({ inline: 'center', block: 'nearest' });
+  }
+  const isNew = S.sel !== c;
+  S.sel = c;
+  if (isNew) pulseT0 = performance.now();
+  applyAppearance();
+  renderSheet(c);
   if (sheetState === 'hidden') setSheet(sheet || 'peek'); else if (sheet) setSheet(sheet);
-  if (changed) setDockCollapsed(true);
-  if (focus) focusPart(p);
+  if (isNew) setDockCollapsed(true);
+  if (frame) frameParts(c.parts);
   requestRender();
 }
 function clearSelection() {
-  if (!S.selected && sheetState === 'hidden') return;
-  S.selected = null; refreshAppearance(); setSheet('hidden');
+  if (!S.sel && sheetState === 'hidden') return;
+  S.sel = null; applyAppearance(); setSheet('hidden');
   setDockCollapsed(false);
 }
 
@@ -942,26 +1223,21 @@ function setSheet(s) {
   layoutSheet(true);
   dock.classList.toggle('away', s === 'half' || s === 'full');
   document.documentElement.style.setProperty('--dock-bottom', s === 'peek' ? `calc(${peekH}px + 8px)` : 'max(8px, var(--safe-b))');
-  computeShift(false);
 }
-function neighborParts(p) { return parts.filter(q => q.layer === p.layer && partVisible(q)); }
-function stepPart(dir) {
-  if (!S.selected) return;
-  const list = neighborParts(S.selected); if (list.length < 2) return;
-  const i = list.indexOf(S.selected);
-  selectPart(list[(i + dir + list.length) % list.length], { focus: true });
-}
-$('#sPrev').addEventListener('click', () => stepPart(-1));
-$('#sNext').addEventListener('click', () => stepPart(1));
 $('#sClose').addEventListener('click', () => clearSelection());
 
 const FIELDS = {
   muscle: [['origin', 'Origin'], ['insertion', 'Insertion'], ['action', 'Action'], ['_nerve', 'Nerve supply'], ['blood', 'Blood supply']],
   bone: [['bone_type', 'Bone type'], ['articulations', 'Articulations'], ['landmarks', 'Landmarks'], ['attachments', 'Attachments'], ['ossification', 'Ossification']],
+  cartilage: [['bone_type', 'Type'], ['articulations', 'Articulations'], ['landmarks', 'Landmarks'], ['attachments', 'Attachments'], ['ossification', 'Ossification']],
+  ligament: [['joint', 'Joint'], ['joint_type', 'Joint type'], ['bones', 'Bones'], ['attachments', 'Attachments'], ['function', 'Function'], ['movements', 'Movements']],
   nerve: [['roots', 'Roots'], ['from', 'Arises from'], ['course', 'Course'], ['motor', 'Motor'], ['sensory', 'Sensory'], ['injury', 'Injury']],
+  cns: [['location', 'Location'], ['function', 'Function'], ['parts', 'Parts'], ['blood', 'Blood supply']],
   artery: [['from', 'Arises from'], ['course', 'Course'], ['branches', 'Branches'], ['supplies', 'Supplies']],
   vein: [['drains', 'Drains'], ['into', 'Drains into'], ['course', 'Course'], ['_superficial', 'Superficial']],
+  organ: [['system', 'System'], ['location', 'Location'], ['function', 'Function'], ['parts', 'Parts'], ['blood', 'Blood supply'], ['nerve', 'Nerve supply']],
 };
+const COMMON_KEYS = new Set(['id', 'name', 'latin', 'type', 'region', 'group', 'parent', 'summary', 'clinical', 'superficial', 'roots', 'nerve']);
 function fieldEl(label, value, cls) {
   const items = toList(value).map(fmt).filter(s => s && s.trim());
   if (!items.length) return null;
@@ -971,37 +1247,50 @@ function fieldEl(label, value, cls) {
   else sec.append(el('p', null, items[0]));
   return sec;
 }
-function tag(text, color) {
-  const t = el('span', 'tag'); if (color) { const d = el('i', 'dot'); d.style.background = color; d.style.display = 'inline-block'; t.append(d); }
+function tag(text, color, cls) {
+  const t = el('span', 'tag' + (cls ? ' ' + cls : '')); if (color) { const d = el('i', 'dot'); d.style.background = color; d.style.display = 'inline-block'; t.append(d); }
   t.append(document.createTextNode(text)); return t;
 }
-function renderSheet(p) {
-  const c = p.card;
-  $('#sName').textContent = partTitle(p);
-  const lat = $('#sLatin'); lat.textContent = (c && c.latin) || ''; lat.style.display = (c && c.latin) ? '' : 'none';
+function sideText(c) {
+  const s = c.sides;
+  if (s.has('R') && s.has('L')) return 'Both sides';
+  if (s.has('R')) return s.has('M') ? 'Both sides' : 'Right';
+  if (s.has('L')) return s.has('M') ? 'Both sides' : 'Left';
+  return 'Midline';
+}
+function renderSheet(c) {
+  const card = c.card, p0 = c.parts[0];
+  $('#sName').textContent = c.name;
+  const lat = $('#sLatin'); lat.textContent = c.latin; lat.style.display = c.latin ? '' : 'none';
   const chips = $('#sChips'); chips.textContent = '';
-  chips.append(tag((c && c.type && TYPE_LABEL[c.type]) || TYPE_LABEL[p.type] || p.type, TYPE_COLOR[p.type]));
-  if (c && c.region) chips.append(tag(c.region));
-  const g = (c && c.group) || groupLeaf(p); if (g) chips.append(tag(cleanName(g)));
-  if (!(c && c.region) && LAYER_LABEL[p.layer] && p.type === 'muscle') chips.append(tag(LAYER_LABEL[p.layer]));
-  const body = $('#sheetBody'); body.textContent = ''; body.scrollTop = 0;
-  if (!c) { body.append(el('div', 'soon', 'Details coming soon')); return; }
-  if (c.summary) body.append(el('p', 'summary', c.summary));
-  const par = fieldEl('Part of', c.parent); if (par) body.append(par);
-  const defs = FIELDS[p.type] || [];
+  chips.append(tag(sideText(c), null, 'side'));
+  chips.append(tag(TYPE_LABEL[p0.type] || p0.type, TYPE_COLOR[p0.type]));
+  const rn = regionName.get(p0.region) || (card && card.region); if (rn) chips.append(tag(rn));
+  if (card && card.group) chips.append(tag(cleanName(card.group)));
+  if (p0.type === 'muscle' && layerName.get(p0.layer)) chips.append(tag(layerName.get(p0.layer)));
+  const bodyEl = $('#sheetBody'); bodyEl.textContent = ''; bodyEl.scrollTop = 0;
+  if (!card) { bodyEl.append(el('div', 'soon', 'Details coming soon')); return; }
+  if (card.summary) bodyEl.append(el('p', 'summary', card.summary));
+  const par = fieldEl('Part of', card.parent); if (par) bodyEl.append(par);
+  const defs = FIELDS[p0.type] || [];
+  const used = new Set();
   for (const [k, label] of defs) {
-    let v = c[k];
+    let v = card[k]; used.add(k);
     if (k === '_nerve') {
-      const roots = toList(c.roots).map(fmt).join(', ');
-      v = c.nerve ? fmt(c.nerve) + (roots ? ' (' + roots + ')' : '') : (roots ? 'Roots: ' + roots : null);
+      const roots = toList(card.roots).map(fmt).join(', ');
+      v = card.nerve ? fmt(card.nerve) + (roots ? ' (' + roots + ')' : '') : (roots ? 'Roots: ' + roots : null);
     }
-    if (k === '_superficial') v = typeof c.superficial === 'boolean' ? (c.superficial ? 'Yes' : 'No (deep)') : null;
-    const f = fieldEl(label, v); if (f) body.append(f);
+    if (k === '_superficial') v = typeof card.superficial === 'boolean' ? (card.superficial ? 'Yes' : 'No (deep)') : null;
+    const f = fieldEl(label, v); if (f) bodyEl.append(f);
   }
-  if (c.clinical) { const f = fieldEl('Clinical note', c.clinical, 'clin'); const box = el('div', 'clin'); box.append(...f.childNodes); body.append(box); }
+  for (const k of Object.keys(card)) { // anything else the card carries
+    if (used.has(k) || COMMON_KEYS.has(k) || card[k] == null || typeof card[k] === 'boolean') continue;
+    const f = fieldEl(cap1(k.replace(/_/g, ' ')), card[k]); if (f) bodyEl.append(f);
+  }
+  if (card.clinical) { const f = fieldEl('Clinical note', card.clinical); const box = el('div', 'clin'); box.append(...f.childNodes); bodyEl.append(box); }
 }
 
-/* sheet drag + swipe */
+/* sheet drag */
 (function sheetGestures() {
   const head = $('#sheetHead');
   let g = null;
@@ -1022,34 +1311,26 @@ function renderSheet(p) {
       sheetEl.style.transform = `translateY(${fullH - vis}px)`;
       sheetEl.style.setProperty('--hide', Math.max(0, fullH - vis) + 'px');
       g.cur = vis;
-    } else if (g.axis === 'h') {
-      $('#sheetHead .tt').style.transform = `translateX(${clamp(dx, -80, 80) * .6}px)`;
-      $('#sheetHead .tt').style.opacity = String(1 - Math.min(.5, Math.abs(dx) / 200));
     }
   });
   const end = e => {
     if (!g || (e && e.pointerId !== g.id)) return;
     const d = g; g = null;
-    const tt = $('#sheetHead .tt'); tt.style.transform = ''; tt.style.opacity = '';
     sheetEl.classList.remove('dragging');
     if (d.axis === 'v') {
-      const proj = (d.cur || d.vis) - d.v * 160; // px/ms * ms; v is positive when moving down
+      const proj = (d.cur || d.vis) - d.v * 160;
       const dist = s => Math.abs(snapH(s) - proj);
-      let best = ['peek', 'half', 'full'].sort((a, b) => dist(a) - dist(b))[0];
+      const best = ['peek', 'half', 'full'].sort((a, b) => dist(a) - dist(b))[0];
       if (proj < peekH * .55) { clearSelection(); return; }
       setSheet(best);
-    } else if (d.axis === 'h') {
-      const dx = (e ? e.clientX : d.x) - d.x;
-      if (Math.abs(dx) > 55) stepPart(dx < 0 ? 1 : -1); else layoutSheet(true);
-    } else if (e && e.type === 'pointerup') {
-      // tap on header cycles snap points
+    } else if (!d.axis && e && e.type === 'pointerup') {
       setSheet(sheetState === 'peek' ? 'half' : sheetState === 'half' ? 'full' : 'half');
     } else layoutSheet(true);
   };
   head.addEventListener('pointerup', end); head.addEventListener('pointercancel', end);
 })();
 
-/* ------------------------------------------------------------------ search */
+/* ------------------------------------------------------------------ search: fuzzy, one result per card */
 const qIn = $('#q'), resultsEl = $('#results'), qClear = $('#qclear');
 const norm = s => String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9 ]+/g, ' ').replace(/\s+/g, ' ').trim();
 function editLE1(a, b) {
@@ -1072,47 +1353,52 @@ function scoreTok(q, t) {
   if (q.length >= 4) for (const w of t.split(' ')) if (editLE1(q, w) || (w.length > 4 && editLE1(q, w.slice(0, q.length)))) return 38;
   return 0;
 }
-function searchParts(query) {
+function searchCards(query) {
   const toks = norm(query).split(' ').filter(Boolean);
   if (!toks.length) return [];
   const out = [];
-  for (const p of parts) {
-    if (!p._s) p._s = [[norm(p.title), 1], [norm(p.label), 1], [norm(p.card && p.card.latin), .9], [norm(p.group.split('>').map(cleanName).join(' ')), .45]];
+  for (const c of cardIdx.values()) {
+    if (!c._s) c._s = [[norm(c.name), 1], [norm(cleanName(c.parts[0].label)), 1], [norm(c.latin), .9], [norm(c.card && c.card.group), .45]];
     let tot = 0, ok = true;
     for (const tk of toks) {
       let best = 0;
-      for (const [txt, w] of p._s) best = Math.max(best, scoreTok(tk, txt) * w);
+      for (const [txt, w] of c._s) best = Math.max(best, scoreTok(tk, txt) * w);
       if (!best) { ok = false; break; } tot += best;
     }
-    if (ok) out.push([tot / toks.length, p]);
+    if (ok) {
+      const inRegion = S.region === 'all' || c.parts.some(p => p.region === S.region);
+      out.push([tot / toks.length + (inRegion ? 0 : -1000), c]);
+    }
   }
-  out.sort((a, b) => b[0] - a[0] || a[1].title.localeCompare(b[1].title));
-  return out.slice(0, 50).map(x => x[1]);
+  out.sort((a, b) => b[0] - a[0] || a[1].name.localeCompare(b[1].name));
+  return out.slice(0, 40).map(x => x[1]);
 }
-let resItems = [], resIdx = -1;
+let resItems = [];
 function renderResults() {
   const q = qIn.value;
   qClear.hidden = !q;
   if (!norm(q)) { closeResults(); return; }
-  resItems = searchParts(q); resIdx = -1;
+  resItems = searchCards(q);
   resultsEl.textContent = ''; resultsEl.hidden = false;
-  if (!resItems.length) { resultsEl.append(el('div', 'empty', 'No matching parts')); return; }
-  for (const p of resItems) {
-    const b = el('button', 'res');
-    const d = el('span', 'dot'); d.style.background = TYPE_COLOR[p.type] || '#999';
-    const t = el('div', 't'); t.append(el('div', 'n', p.title));
-    const sub = [p.card && p.card.latin, LAYER_LABEL[p.layer], groupLeaf(p)].filter(Boolean);
-    t.append(el('div', 's', [...new Set(sub)].join(' · ')));
-    b.append(d, t);
-    if (!S.layers[p.layer]) b.append(el('span', 'off', 'hidden'));
-    b.addEventListener('click', () => pickResult(p));
+  if (!resItems.length) { resultsEl.append(el('div', 'empty', 'No matching structures')); return; }
+  for (const c of resItems) {
+    const b = el('button', 'res'), p0 = c.parts[0];
+    const d = el('span', 'dot'); d.style.background = TYPE_COLOR[p0.type] || '#999';
+    const t = el('div', 't'); t.append(el('div', 'n', c.name));
+    const s = el('div', 's');
+    if (c.latin) { s.append(el('em', null, c.latin), document.createTextNode(' · ')); }
+    s.append(document.createTextNode([TYPE_LABEL[p0.type], regionName.get(p0.region)].filter(Boolean).join(' · ')));
+    t.append(s); b.append(d, t);
+    const outRegion = S.region !== 'all' && !c.parts.some(p => p.region === S.region);
+    if (outRegion) b.append(el('span', 'off', 'shows all'));
+    else if (c.parts.every(p => !S.layers[p.layer])) b.append(el('span', 'off', 'hidden'));
+    b.addEventListener('click', () => pickResult(c));
     resultsEl.append(b);
   }
 }
-function pickResult(p) {
+function pickResult(c) {
   closeResults(true); qIn.blur();
-  if (Q.active) return;
-  selectPart(p, { focus: true, sheet: 'half', fromSearch: true });
+  selectCard(c, { frame: true, sheet: 'peek', fromSearch: true });
 }
 function closeResults(clear) {
   resultsEl.hidden = true; resItems = [];
@@ -1121,176 +1407,12 @@ function closeResults(clear) {
 qIn.addEventListener('input', renderResults);
 qIn.addEventListener('focus', () => { if (norm(qIn.value)) renderResults(); });
 qIn.addEventListener('keydown', e => {
-  if (e.key === 'Enter' && resItems.length) { e.preventDefault(); pickResult(resItems[Math.max(0, resIdx)]); }
+  if (e.key === 'Enter' && resItems.length) { e.preventDefault(); pickResult(resItems[0]); }
   if (e.key === 'Escape') { closeResults(true); qIn.blur(); }
 });
 qClear.addEventListener('click', () => { closeResults(true); qIn.focus(); });
 document.addEventListener('pointerdown', e => {
   if (!resultsEl.hidden && !e.target.closest('#results') && !e.target.closest('#topbar')) { resultsEl.hidden = true; }
-});
-
-/* ------------------------------------------------------------------ quiz */
-const Q = { active: false, mode: 'find', score: 0, total: 0, cur: null, answered: false, queue: [], savedLabels: false };
-function shuffle(a) { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
-function eligible() { return parts.filter(partVisible); }
-const _e = new THREE.Vector3(), _nrm = new THREE.Vector3(), _cp = new THREE.Vector3();
-const RAYS_PER_QUESTION = 24, RAYS_PER_PART = 3;
-// Shared context for one question: matrices updated once, pickable list built once, ray budget.
-function makeRayCtx(max = RAYS_PER_QUESTION) {
-  scene.updateMatrixWorld(true);
-  return { list: pickableMeshes(), left: max };
-}
-// A screen point where part p is the first thing hit from the current camera, or null.
-// Screen/facing tests are free; only actual raycasts spend the shared budget (ctx.left).
-function exposedPoint(p, ctx = makeRayCtx()) {
-  const m = p.meshes.find(x => x.visible && x.userData.matName !== 'Tendon') || p.meshes[0];
-  const pos = m.geometry.attributes.position, nor = m.geometry.attributes.normal, n = pos.count;
-  const yTop = topOccupied(), yBot = H - bottomOccupied() - 10;
-  camera.getWorldPosition(_cp);
-  const SCAN = 48; let used = 0;
-  for (let k = 0; k < SCAN && used < RAYS_PER_PART && ctx.left > 0; k++) {
-    const idx = Math.floor((k + .5) / SCAN * n);
-    _e.fromBufferAttribute(pos, idx); m.localToWorld(_e);
-    if (nor) { // skip vertices facing away from the camera
-      _nrm.fromBufferAttribute(nor, idx).transformDirection(m.matrixWorld);
-      if (_nrm.dot(_cp.clone().sub(_e)) <= 0) continue;
-    }
-    _e.project(camera);
-    if (_e.z > 1) continue;
-    const x = (_e.x * .5 + .5) * W, y = (-_e.y * .5 + .5) * H;
-    if (x < 14 || x > W - 14 || y < yTop || y > yBot) continue;
-    used++; ctx.left--;
-    if (rayPart(x, y, ctx.list) === p) return { x, y };
-  }
-  return null;
-}
-function quizHint(p) {
-  let q = p.card && p.card.quiz;
-  if (Array.isArray(q)) q = q[Math.floor(Math.random() * q.length)];
-  if (q && typeof q === 'object') q = q.hint || q.question || q.prompt || q.clue || q.q || '';
-  return q ? String(q) : '';
-}
-function startQuiz() {
-  closeResults(true);
-  if (S.selected) { S.selected = null; setSheet('hidden'); }
-  Q.active = true; Q.score = 0; Q.total = 0; Q.queue = []; Q.savedLabels = S.labels; Q.savedIso = S.isolate;
-  setLabels(false); S.isolate = false; $('#btnIso').setAttribute('aria-pressed', 'false');
-  document.body.classList.add('quiz'); quizEl.hidden = false; setDockCollapsed(false);
-  dock.classList.remove('away');
-  document.documentElement.style.setProperty('--dock-bottom', 'max(8px, var(--safe-b))');
-  if (Q.mode === 'find') beginFind(); else nextQuestion();
-}
-function beginFind() {
-  // show the card first, then frame the whole arm above it, then pick a question that is tappable from that view
-  $('#qprompt').textContent = 'Get ready'; $('#qname').textContent = ''; $('#qhint').textContent = ''; $('#qopts').hidden = true;
-  $('#qnext').hidden = true; $('#qskip').hidden = true; $('#qfb').textContent = ''; S.hl = new Map(); refreshAppearance();
-  requestAnimationFrame(() => {
-    document.documentElement.style.setProperty('--quiz-h', quizEl.offsetHeight + 'px'); computeShift(true);
-    const d = fitDistance(modelSize, bottomOccupied(), topOccupied());
-    tweenCamera(home.target.clone(), d, new THREE.Vector3(0, 0, 1), () => { if (Q.active && Q.mode === 'find') nextQuestion(); });
-  });
-}
-function exitQuiz() {
-  Q.active = false; Q.cur = null; S.quizGhost = false; S.hl = new Map();
-  document.body.classList.remove('quiz'); quizEl.hidden = true;
-  document.documentElement.style.setProperty('--quiz-h', '0px');
-  S.isolate = !!Q.savedIso; $('#btnIso').setAttribute('aria-pressed', String(S.isolate));
-  setLabels(Q.savedLabels); refreshAppearance(); computeShift(false);
-  tweenCamera(home.target.clone(), home.dist, new THREE.Vector3(0, 0, 1));
-}
-function setQuizMode(m) {
-  Q.mode = m; Q.score = 0; Q.total = 0;   $('#qmFind').setAttribute('aria-selected', String(m === 'find'));
-  $('#qmName').setAttribute('aria-selected', String(m === 'name'));
-  if (m === 'find') beginFind(); else nextQuestion();
-}
-function updateScore() { $('#qscore').textContent = Q.score + ' / ' + Q.total; }
-function nextQuestion() {
-  Q.answered = false; S.quizGhost = false; S.hl = new Map();
-  $('#qfb').textContent = ''; $('#qfb').className = ''; $('#qnext').hidden = true; $('#qskip').hidden = false;
-  updateScore();
-  const pool = eligible();
-  const optsEl = $('#qopts');
-  if (!pool.length) {
-    Q.cur = null; $('#qprompt').textContent = ''; $('#qname').textContent = 'Turn on a layer to start'; $('#qhint').textContent = ''; optsEl.hidden = true;
-    refreshAppearance(); return;
-  }
-  Q.queue = Q.queue.filter(partVisible);
-  if (!Q.queue.length) Q.queue = shuffle(pool).filter(p => p !== Q.cur);
-  let p = Q.queue.pop();
-  if (Q.mode === 'find') { // prefer parts you can actually tap from the current view (bounded raycast budget)
-    const t0 = performance.now();
-    const ctx = makeRayCtx(), failed = []; let pt = null, found = null, cand = p;
-    for (let i = 0; cand && i < 80; i++) {
-      pt = exposedPoint(cand, ctx);
-      if (pt) { found = cand; break; }
-      failed.push(cand);
-      if (ctx.left <= 0) break;
-      cand = Q.queue.pop();
-    }
-    if (found) { p = found; Q.queue.unshift(...failed); }   // tested-and-failed parts go to the back of the queue
-    else { p = failed[0] || pool[0]; pt = null; Q.queue.unshift(...failed.slice(1)); } // none passed: any visible part
-    Q.tapPt = pt; Q.lastPickMs = performance.now() - t0; Q.lastRays = RAYS_PER_QUESTION - ctx.left;
-  }
-  Q.cur = p;
-  if (Q.mode === 'find') {
-    $('#qprompt').textContent = 'Tap this part on the model';
-    $('#qname').textContent = partTitle(p);
-    $('#qhint').textContent = quizHint(p);
-    optsEl.hidden = true;
-    refreshAppearance();
-  } else {
-    $('#qprompt').textContent = 'What is the highlighted part?';
-    $('#qname').textContent = ''; $('#qhint').textContent = '';
-    S.quizGhost = true; S.hl = new Map([[p.id, 'sel']]); refreshAppearance();
-    focusPart(p);
-    const same = parts.filter(q => q.type === p.type && q !== p);
-    const names = new Set([partTitle(p)]); const picks = [];
-    for (const q of shuffle(same).sort((a, b) => (b.layer === p.layer) - (a.layer === p.layer) + (Math.random() - .5) * 1.2)) {
-      const n = partTitle(q); if (names.has(n)) continue; names.add(n); picks.push(q); if (picks.length >= 3) break;
-    }
-    const options = shuffle([p, ...picks]);
-    optsEl.textContent = ''; optsEl.hidden = false;
-    for (const o of options) {
-      const b = el('button', 'opt', partTitle(o)); b.dataset.id = o.id;
-      b.addEventListener('click', () => answerName(o, b));
-      optsEl.append(b);
-    }
-  }
-  requestAnimationFrame(() => { document.documentElement.style.setProperty('--quiz-h', quizEl.offsetHeight + 'px'); computeShift(false); });
-}
-function finishQuestion(correct, picked) {
-  Q.answered = true; Q.total++; if (correct) Q.score++;
-  const fb = $('#qfb');
-  if (correct) { fb.textContent = 'Correct'; fb.className = 'good'; }
-  else { fb.textContent = picked ? 'Not quite. You chose ' + partTitle(picked) + '.' : 'Revealed: ' + partTitle(Q.cur); fb.className = 'bad'; }
-  const hl = new Map([[Q.cur.id, 'good']]);
-  if (picked && !correct) hl.set(picked.id, 'bad');
-  S.hl = hl; S.quizGhost = !correct;
-  refreshAppearance();
-  if (!correct) focusPart(Q.cur);
-  $('#qnext').hidden = false; $('#qskip').hidden = true; updateScore();
-  requestAnimationFrame(() => computeShift(false));
-}
-function quizTap(p) {
-  if (Q.mode !== 'find' || Q.answered || !Q.cur || !p) return;
-  finishQuestion(p === Q.cur, p === Q.cur ? null : p);
-}
-function answerName(o, btn) {
-  if (Q.answered) return;
-  const ok = o === Q.cur;
-  for (const b of $$('.opt', $('#qopts'))) { b.disabled = true; if (b.dataset.id === Q.cur.id) b.classList.add('good'); }
-  if (!ok) btn.classList.add('bad');
-  finishQuestion(ok, ok ? null : o);
-}
-$('#btnQuiz').addEventListener('click', startQuiz);
-$('#qexit').addEventListener('click', exitQuiz);
-$('#qmFind').addEventListener('click', () => Q.mode !== 'find' && setQuizMode('find'));
-$('#qmName').addEventListener('click', () => Q.mode !== 'name' && setQuizMode('name'));
-$('#qnext').addEventListener('click', nextQuestion);
-$('#qskip').addEventListener('click', () => {
-  if (Q.answered || !Q.cur) return;
-  if (Q.mode === 'name') { for (const b of $$('.opt', $('#qopts'))) { b.disabled = true; if (b.dataset.id === Q.cur.id) b.classList.add('good'); } }
-  finishQuestion(false, null);
 });
 
 /* ------------------------------------------------------------------ modals: glossary + info */
@@ -1302,10 +1424,9 @@ $$('.modal').forEach(m => {
 });
 function renderGlossary() {
   const list = $('#gList'); list.textContent = '';
-  const terms = (anatomy && anatomy.glossary) || [];
-  if (!terms.length) { list.append(el('div', 'empty', 'No terms yet')); return; }
+  if (!GLOSSARY.length) { list.append(el('div', 'empty', 'No terms yet')); return; }
   const q = norm($('#gq').value);
-  const sorted = terms.slice().sort((a, b) => String(a.term).localeCompare(String(b.term)));
+  const sorted = GLOSSARY.slice().sort((a, b) => String(a.term).localeCompare(String(b.term)));
   const shown = q ? sorted.filter(t => norm(t.term).includes(q) || norm(t.def).includes(q)) : sorted;
   if (!shown.length) { list.append(el('div', 'empty', 'No matching terms')); return; }
   for (const t of shown) { const d = el('div', 'term'); d.append(el('b', null, t.term), el('span', null, t.def)); list.append(d); }
@@ -1314,12 +1435,12 @@ $('#btnGloss').addEventListener('click', () => { renderGlossary(); openModal('#m
 $('#gq').addEventListener('input', renderGlossary);
 function renderInfo() {
   const b = $('#infoBody'); b.textContent = '';
-  b.append(el('p', null, 'Anatomy 3D: an interactive 3D model of the right upper limb with bones, muscles, nerves and vessels.'));
+  b.append(el('p', null, 'Anatomy 3D: an interactive 3D atlas of the whole human body with bones, joints, muscles, nerves, vessels and organs.'));
   const cr = el('p'); cr.append(el('b', null, 'Credits')); cr.append(document.createElement('br'));
-  cr.append(document.createTextNode((anatomy && anatomy.credit) || 'Credits unavailable.')); b.append(cr);
+  cr.append(document.createTextNode((DATA && DATA.credit) || 'Credits unavailable.')); b.append(cr);
   b.append(el('div', 'warn', 'For study only. Not for clinical use.'));
   const meta = el('p', 'small'); meta.style.marginTop = '14px';
-  meta.textContent = 'Tap a part to select it. Drag to rotate, pinch to zoom, two fingers to pan. Add to Home Screen for the full-screen app.' + (anatomy && anatomy.version ? ' Data version ' + anatomy.version + '.' : '');
+  meta.textContent = 'Tap a structure to isolate it; tap empty space to restore. Drag to rotate, pinch to zoom, two fingers to pan. Add to Home Screen for the full-screen app.';
   b.append(meta);
 }
 $('#btnInfo').addEventListener('click', () => { renderInfo(); openModal('#mInfo'); });
@@ -1327,22 +1448,31 @@ $('#btnInfo').addEventListener('click', () => { renderInfo(); openModal('#mInfo'
 /* ------------------------------------------------------------------ boot */
 (async function boot() {
   try {
-    measureUI();
-    onResizeInit();
-    const size = await loadModel(); modelSize = size;
-    updateChips(); updatePeel(); syncExplodeUI();
-    // initial framing: front view, whole arm visible above the control dock
-    const expandedOcc = Math.max(8, safeB) + dock.offsetHeight + 8;
-    home.dist = fitDistance(size, expandedOcc, topOccupied());
-    controls.maxDistance = home.dist * 3.2;
-    camera.position.set(0, 0, home.dist); controls.target.set(0, 0, 0); camera.lookAt(0, 0, 0); controls.update();
-    viewShift = viewShiftTarget = (expandedOcc - topOccupied()) / 2; applyViewOffset();
+    W = innerWidth; H = innerHeight; renderer.setSize(W, H, false); camera.aspect = W / H; camera.updateProjectionMatrix();
+    measureUI(); layoutSheet(false);
+    const t0 = performance.now();
+    const gltfs = await loadAll();
+    const n = buildParts(gltfs);
+    buildMerged();
+    peelOrder = PEEL_ORDER.filter(l => (DATA.layers || []).some(x => x.id === l));
+    for (const l of DATA.layers || []) S.layers[l.id] = true;
+    buildRegions(); buildChips(); applyVisibility(); applyAppearance(); updatePeel(); syncExplodeUI(); applyTheme();
+    dockExpandedH = dock.offsetHeight || dockExpandedH;
+    computeShift();
+    // initial framing: whole body, front view, inside the free area
+    const g = fitBox(boxOfParts(parts, 0), new THREE.Vector3(0, .05, 1), bottomOccupied());
+    camera.position.copy(g.target).addScaledVector(g.dir, g.dist); controls.target.copy(g.target); camera.lookAt(g.target);
+    controls.maxDistance = g.dist * 2.6; controls.update();
     renderer.render(scene, camera);
     setProgress(1, 'Ready');
     requestRender();
     window.__ready = true; $('#loadErr').hidden = true;
-    window.__app = { S, parts, partsById, selectPart, clearSelection, setSheet, camera, controls, scene, renderer, startQuiz, setLabels, pickAt, Q, exposedPoint, get sheetState() { return sheetState; } };
-    setTimeout(() => { loadingEl.classList.add('done'); setTimeout(() => { loadingEl.style.display = 'none'; }, 500); }, 120);
+    window.__loadMs = performance.now() - t0;
+    window.__app = {
+      S, parts, cardIdx, selectCard, clearSelection, setSheet, setRegion, camera, controls, scene, renderer, pickAt, resetView, frameRegion, setLabels,
+      get lastPick() { return lastPick; }, get tweening() { return tweens.length > 0 || !!cameraTween; }, get sheetState() { return sheetState; }, count: n, THREE, searchCards,
+    };
+    setTimeout(() => { loadingEl.classList.add('done'); setTimeout(() => { loadingEl.style.display = 'none'; }, 550); }, 150);
   } catch (err) {
     console.error(err);
     const kind = err && err.kind;
@@ -1351,9 +1481,6 @@ $('#btnInfo').addEventListener('click', () => { renderInfo(); openModal('#mInfo'
       : 'The 3D model could not be loaded. Check your connection and try again.');
   }
 })();
-function onResizeInit() {
-  W = innerWidth; H = innerHeight; renderer.setSize(W, H, false); camera.aspect = W / H; camera.updateProjectionMatrix(); layoutSheet(false);
-}
 
 if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {
   addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {}));
@@ -1366,6 +1493,7 @@ if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {
   function bail(msg, title, noRetry) {
     if (window.__ready || window.__fatal) return;
     document.getElementById('loadBar').hidden = true; document.getElementById('loadMsg').hidden = true;
+    document.getElementById('loadPct').hidden = true;
     var box = document.getElementById('loadErr');
     box.hidden = false;
     if (title) box.getElementsByTagName('h1')[0].textContent = title;
@@ -1382,7 +1510,7 @@ if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {
     if (e && /ResizeObserver/.test(String(e.message))) return;
     bail();
   });
-  setTimeout(function () { if (!window.__ready && !window.__fatal) bail(); }, 40000);
+  setTimeout(function () { if (!window.__ready && !window.__fatal) bail(); }, 180000);
 })();
 </script>
 </body>

@@ -1,14 +1,15 @@
 # Anatomy 3D
 
-An interactive 3D model of the right arm for iPhone. It shows 198 parts: 32 bones, 63 muscles (with tendons), 49 nerves, 33 arteries, and 21 veins. Each part has a study card.
+An interactive 3D model of the full human body for iPhone. It shows 2,387 parts in 1,370 structures: bones, joints and ligaments, muscles with tendons, nerves, brain and spinal cord, arteries, veins, the heart, and organs. Each structure has a study card.
 
 ## Files
 
 | File | Purpose |
 |---|---|
 | `index.html` | The app (all code inside) |
-| `arm.glb` | The 3D model (664 KB, compressed) |
-| `anatomy.json` | Study cards and glossary |
+| `models/*.glb` | The 3D models, one per body system (6.8 MB total, compressed) |
+| `data/parts.json` | Part list: side, region, layer, explode data |
+| `data/cards.json` | Study cards and glossary |
 | `manifest.json` | Home Screen settings |
 | `sw.js` | Cache for fast repeat visits and offline use |
 | `icon-180.png` | iPhone Home Screen icon |
