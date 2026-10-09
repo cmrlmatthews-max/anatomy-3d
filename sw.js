@@ -1,14 +1,14 @@
 /* Anatomy 3D service worker (full body).
    Bump VERSION whenever the app shell changes. Models are cache-first and keyed by their full URL
    (including any ?v=… in data/parts.json files[].url), so change that query (or bump VERSION) when a GLB changes. */
-const VERSION = 'v4';
+const VERSION = 'v5';
 const PREFIX = 'anatomy3d-';
 const CACHE = PREFIX + VERSION;
 
 const THREE_BASE = 'https://cdn.jsdelivr.net/npm/three@0.170.0/';
 const FONT_CSS = 'https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..700;1,9..144,400..600&display=swap';
 const SHELL = [
-  './', './index.html', './manifest.json',
+  './index.html', './manifest.json',   // navigations are answered with ./index.html, so './' need not be stored separately
   './data/parts.json', './data/cards.json',
   './icon-180.png', './icon-192.png', './icon-512.png', './icon-maskable-512.png',
 ];
@@ -19,7 +19,6 @@ const CDN = [
   THREE_BASE + 'examples/jsm/controls/OrbitControls.js',
   THREE_BASE + 'examples/jsm/utils/BufferGeometryUtils.js',
   THREE_BASE + 'examples/jsm/environments/RoomEnvironment.js',
-  THREE_BASE + 'examples/jsm/libs/draco/gltf/draco_decoder.js',
   THREE_BASE + 'examples/jsm/libs/draco/gltf/draco_decoder.wasm',
   THREE_BASE + 'examples/jsm/libs/draco/gltf/draco_wasm_wrapper.js',
 ];
@@ -29,13 +28,16 @@ const cacheable = (res) => res && res.ok && res.type !== 'opaque' && res.type !=
 self.addEventListener('install', (event) => {
   event.waitUntil((async () => {
     const cache = await caches.open(CACHE);
-    // Add individually so one missing file never blocks installation.
-    await Promise.all(SHELL.map((u) => cache.add(u).catch(() => {})));
+    // Add individually so one missing file never blocks installation. App-shell files are fetched with cache:'reload' so a stale
+    // HTTP-cache copy of index.html / parts.json can never be pinned into the new version's cache.
+    const fresh = (u) => new Request(u, { cache: 'reload' });
+    await Promise.all(SHELL.map((u) => cache.add(fresh(u)).catch(() => {})));
     await Promise.all(CDN.map((u) => cache.add(new Request(u, { mode: 'cors' })).catch(() => {})));
     // Every model listed in parts.json (read from the cache we just filled, falling back to the network).
     try {
-      const res = (await cache.match('./data/parts.json')) || (await fetch('./data/parts.json'));
+      const res = (await cache.match('./data/parts.json')) || (await fetch(fresh('./data/parts.json')));
       const data = await res.clone().json();
+      // Model URLs are versioned (?v=…), so they may come from the HTTP cache the page just filled (no second download).
       await Promise.all((data.files || []).map((f) => cache.add(f.url).catch(() => {})));
     } catch (e) { /* models are cached on first use instead */ }
     // Fonts: stylesheet + the latin subset files it references.

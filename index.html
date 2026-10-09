@@ -82,7 +82,7 @@ body{
   background:radial-gradient(120% 90% at 50% 30%, var(--bg1) 0%, var(--bg2) 100%);
   -webkit-user-select:none;user-select:none;-webkit-touch-callout:none;touch-action:manipulation;
 }
-@media (prefers-color-scheme: light){ html:not([data-theme="dark"]),html:not([data-theme="dark"]) body{background:#d3dae8} }
+@media (prefers-color-scheme: light){ html:not([data-theme="dark"]){background:#d3dae8} }   /* html only: the body gradient must stay on top */
 button{font:inherit;color:inherit;border:0;background:none;padding:0;margin:0;cursor:pointer;touch-action:manipulation}
 button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 [hidden]{display:none !important}
@@ -441,10 +441,19 @@ renderer.toneMappingExposure = 1.0;
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(32, 1, 0.02, 14);
 scene.add(camera);
-{ // soft studio reflections so the slightly glossy materials read as forms
+scene.matrixWorldAutoUpdate = false;   // static scene: only the camera (and its lights) and the exploding body move; see frame() / refreshWorld()
+scene.environmentIntensity = 0.42;
+// soft studio reflections so the slightly glossy materials read as forms. Built at boot and again after a WebGL context restore
+// (the render target's contents are lost with the context).
+let envRT = null;
+function buildEnv(afterLoss) {
   const pm = new THREE.PMREMGenerator(renderer);
-  scene.environment = pm.fromScene(new RoomEnvironment(), 0.04).texture;
-  scene.environmentIntensity = 0.42;
+  const rt = pm.fromScene(new RoomEnvironment(), 0.04);
+  const old = envRT; envRT = rt;
+  scene.environment = rt.texture;
+  // After a context loss the old texture's GL objects died with the context (disposing would only log "object does not belong
+  // to this context"); otherwise release it.
+  if (old && !afterLoss) old.dispose();
   pm.dispose();
 }
 scene.add(new THREE.HemisphereLight(0xffffff, 0x7d86a0, 0.35));
@@ -456,6 +465,7 @@ fillL.position.set(-1.8, -.3, 1.2); fillL.target.position.set(0, 0, -3);
 const rim = new THREE.DirectionalLight(0xdfe9ff, 2.2);
 rim.position.set(.9, 1.4, -6); rim.target.position.set(0, 0, -3);
 camera.add(key, key.target, fillL, fillL.target, rim, rim.target);
+scene.updateMatrixWorld(true);   // once: the hemisphere light's direction comes from its world matrix
 const body = new THREE.Group(); scene.add(body); body.matrixWorldAutoUpdate = false;   // world matrices only change on explode (refreshWorld)
 
 const controls = new OrbitControls(camera, renderer.domElement);
@@ -599,6 +609,7 @@ function frame(now) {
     for (const m of selMats.values()) m.emissiveIntensity = v;
   }
   controls.update();
+  camera.updateMatrixWorld();   // scene.matrixWorldAutoUpdate is off, so the camera (and the lights on it) is updated here
   renderer.render(scene, camera);
   if (S.labels) updateLabels();
   if (busy) requestRender();
@@ -608,15 +619,25 @@ function onResize() {
   W = innerWidth; H = innerHeight;
   renderer.setSize(W, H, false);
   camera.aspect = W / H; camera.updateProjectionMatrix();
-  measureUI(); layoutSheet(false); computeShift(); requestRender();
+  measureUI(); layoutSheet(false); computeShift(); applyViewOffset(); requestRender();
 }
 addEventListener('resize', onResize);
 addEventListener('orientationchange', () => setTimeout(onResize, 250));
 document.addEventListener('gesturestart', e => e.preventDefault());
 document.addEventListener('visibilitychange', () => { if (!document.hidden) { requestRender(); requestAnimationFrame(requestRender); } });
 addEventListener('pageshow', () => requestRender());
-renderer.domElement.addEventListener('webglcontextlost', e => e.preventDefault());
-renderer.domElement.addEventListener('webglcontextrestored', () => { requestRender(); requestAnimationFrame(requestRender); });
+let lostTimer = 0, lostPanel = false;
+renderer.domElement.addEventListener('webglcontextlost', e => {
+  e.preventDefault();
+  clearTimeout(lostTimer);
+  lostTimer = setTimeout(() => { lostPanel = true; fatal('Graphics were interrupted and did not come back. Try again to reload the app.'); }, 5000);
+});
+renderer.domElement.addEventListener('webglcontextrestored', () => {
+  clearTimeout(lostTimer);
+  if (lostPanel) { lostPanel = false; $('#loadErr').hidden = true; loadingEl.classList.add('done'); loadingEl.style.display = 'none'; }
+  try { buildEnv(true); } catch (err) { console.error(err); }
+  requestRender(); requestAnimationFrame(requestRender);
+});
 
 /* ------------------------------------------------------------------ UI measurements */
 const probeB = el('div'), probeT = el('div'), probePeek = el('div');
@@ -717,12 +738,12 @@ function frameParts(list) {
 }
 
 /* ------------------------------------------------------------------ data + model loading */
-async function fetchJSON(url) {
-  const r = await fetch(url); if (!r.ok) throw new Error(url + ' ' + r.status);
+async function fetchJSON(url, signal) {
+  const r = await fetch(url, { signal }); if (!r.ok) throw new Error(url + ' ' + r.status);
   return r.json();
 }
-async function fetchBuffer(url, onBytes) {
-  const res = await fetch(url);
+async function fetchBuffer(url, onBytes, signal) {
+  const res = await fetch(url, { signal });
   if (!res.ok) throw Object.assign(new Error(url + ' ' + res.status), { kind: 'model' });
   if (!res.body || !res.body.getReader) { const b = await res.arrayBuffer(); onBytes(b.byteLength); return b; }
   const len = +res.headers.get('content-length') || 0;
@@ -737,10 +758,25 @@ async function fetchBuffer(url, onBytes) {
   const all = new Uint8Array(got); let o = 0; for (const c of chunks) { all.set(c, o); o += c.length; } return all.buffer;
 }
 
+const STALL_MS = 120000;   // no bytes (and no progress) for this long = the connection has hung
 async function loadAll() {
   setProgress(null, 'Reading the atlas', ' ');
-  DATA = await fetchJSON('./data/parts.json').catch(e => { throw Object.assign(e, { kind: 'data' }); });
-  const cardsP = fetchJSON('./data/cards.json').catch(() => ({ cards: {}, glossary: [] }));
+  // Watchdog: any byte received counts as progress; if nothing moves for STALL_MS, abort the fetches and show the retry panel.
+  const ac = new AbortController();
+  let lastProg = performance.now(), stallTimer = 0;
+  const stalled = new Promise((_, reject) => {
+    stallTimer = setInterval(() => {
+      if (performance.now() - lastProg > STALL_MS) { clearInterval(stallTimer); ac.abort(); reject(Object.assign(new Error('Loading stalled'), { kind: 'stall' })); }
+    }, 5000);
+  });
+  stalled.catch(() => {});
+  try { return await loadAllInner(ac.signal, () => { lastProg = performance.now(); }, stalled); }
+  finally { clearInterval(stallTimer); }
+}
+async function loadAllInner(signal, tick, stalled) {
+  DATA = await Promise.race([fetchJSON('./data/parts.json', signal), stalled]).catch(e => { throw e && e.kind === 'stall' ? e : Object.assign(e, { kind: 'data' }); });
+  tick();
+  const cardsP = fetchJSON('./data/cards.json', signal).catch(() => ({ cards: {}, glossary: [] }));
   const files = DATA.files || [];
   const total = Math.max(1, files.reduce((s, f) => s + (f.bytes || 0), 0));
   let loaded = 0, lastUI = 0;
@@ -755,9 +791,13 @@ async function loadAll() {
   const loader = new GLTFLoader(); loader.setDRACOLoader(draco);
   setProgress(0, 'Loading the body', '0%  ·  0.0 / ' + (total / 1048576).toFixed(1) + ' MB');
   // all files in parallel; each is decoded as soon as its bytes are in
-  const gltfs = await Promise.all(files.map(f => fetchBuffer(f.url, n => { loaded += n; showBytes(); })
-    .then(buf => loader.parseAsync(buf, ''))
-    .catch(e => { throw Object.assign(e instanceof Error ? e : new Error(String(e)), { kind: 'model' }); })));
+  let gltfs;
+  try {
+    gltfs = await Promise.race([Promise.all(files.map(f => fetchBuffer(f.url, n => { loaded += n; tick(); showBytes(); }, signal)
+      .then(buf => { tick(); return loader.parseAsync(buf, ''); })
+      .then(g => { tick(); return g; })
+      .catch(e => { throw Object.assign(e instanceof Error ? e : new Error(String(e)), { kind: (e && e.kind) || 'model' }); }))), stalled]);
+  } catch (e) { draco.dispose(); throw e; }
   loaded = total; showBytes();
   const cd = await cardsP; CARDS = cd.cards || {}; GLOSSARY = cd.glossary || [];
   setProgress(1, 'Building the body', '100%');
@@ -796,6 +836,7 @@ function buildParts(gltfs) {
       if (cn === 'Muscle') cn = MUSCLE_VARIANT[p.layer] || 'Muscle';
       if (!CLS[cn]) cn = TYPE_DEFAULT_CLS[p.type] || 'Organ_other';
       m.userData.part = p; m.userData.cls = cn;
+      m.layers.set(1);   // pick-only; layer 0 (rendered) is enabled in syncRender while the part is the isolated selection
       if ((m.material && m.material.name) === 'Tendon') p.tendonMeshes.push(m);
       if (m.material && m.material !== getBase(cn)) { if (m.material.dispose) m.material.dispose(); }
       m.material = getBase(cn);
@@ -803,6 +844,7 @@ function buildParts(gltfs) {
       if (!m.geometry.boundingSphere) m.geometry.computeBoundingSphere();
       tmp.copy(m.geometry.boundingBox); p.box0.union(tmp);
     }
+    node.visible = true;
     node.matrixAutoUpdate = false;           // single translation per part, written by the explode loop
     node.updateMatrix(); node.matrixWorldNeedsUpdate = true;
     if (p.box0.isEmpty()) p.box0.set(new THREE.Vector3(...d.centroid).subScalar(.01), new THREE.Vector3(...d.centroid).addScalar(.01));
@@ -876,12 +918,13 @@ function buildMerged() {
     const mesh = new THREE.Mesh(geo, getMBase(g.cls)); mesh.visible = false; mesh.matrixAutoUpdate = false; mesh.frustumCulled = false; mesh.userData.bucket = g;
     mergedRoot.add(mesh); g.mesh = mesh; buckets.push(g);
   }
+  mergedRoot.updateMatrixWorld(true);
   mergedReady = true;
 }
 const mergedRoot = new THREE.Group(); scene.add(mergedRoot);
 function bucketVisible(g) { return !!S.layers[g.layer] && (S.region === 'all' || g.region === S.region) && (g.cls !== 'Tendon' || S.tendons); }
 // Everything is drawn from the merged buckets (explode runs in the vertex shader). The only per-part meshes drawn are the
-// isolated structure (solid, at its CPU explode position); every other per-part mesh stays hidden and is used for picking.
+// isolated structure (solid, at its CPU explode position); every other per-part mesh is on the pick-only layer.
 function syncRender() {
   if (!parts.length) return;
   const sel = S.sel;
@@ -889,7 +932,13 @@ function syncRender() {
     const on = bucketVisible(g); g.mesh.visible = on;
     if (on) { const want = sel ? getGhost(g.cls) : getMBase(g.cls); if (g.mesh.material !== want) g.mesh.material = want; }
   }
-  for (const p of parts) p.node.visible = !!sel && p.vis && p.c === sel;
+  // Per-part meshes live on layer 1 (pick-only). Only the isolated selection is also put on layer 0, which the camera renders.
+  for (const p of parts) {
+    const draw = !!sel && p.vis && p.c === sel;
+    for (const m of p.meshes) {
+      if (draw && (m.userData.cls !== 'Tendon' || S.tendons)) m.layers.enable(0); else m.layers.disable(0);
+    }
+  }
   if (sel) refreshWorld();
 }
 let worldDirty = false;
@@ -901,7 +950,8 @@ function applyAppearance() {
   for (const p of parts) {
     const want = !sel ? 'base' : (p.c === sel ? 'sel' : 'ghost');
     if (p.st === want) continue;
-    p.st = want;
+    const prev = p.st; p.st = want;
+    if (prev === 'sel') for (const m of p.meshes) m.geometry.dispose();   // frees the GPU buffers only; the CPU arrays stay for raycasting
     const lib = want === 'sel' ? getSel : getBase;   // per-part meshes are only ever drawn when selected; ghosts come from the merged buckets
     for (const m of p.meshes) m.material = lib(m.userData.cls);
   }
@@ -912,8 +962,6 @@ function applyVisibility() {
   for (const p of parts) {
     const on = !!S.layers[p.layer] && (S.region === 'all' || p.region === S.region);
     p.vis = on;
-    if (on) for (const m of p.tendonMeshes) m.visible = S.tendons;
-    else for (const m of p.tendonMeshes) m.visible = true;
   }
   pickList = null; labelBuckets = null;
   if (S.sel && !S.sel.parts.some(p => p.vis)) clearSelection();
@@ -970,7 +1018,6 @@ function buildChips() {
 }
 function updateChips() {
   for (const b of $$('.chip[data-layer]', chipsEl)) b.setAttribute('aria-pressed', String(b.dataset.layer === 'tendon' ? !!S.tendons : !!S.layers[b.dataset.layer]));
-  for (const p of parts) for (const m of p.tendonMeshes) if (p.vis) m.visible = S.tendons;
 }
 let peelOrder = [];
 function peelLevel() { let n = 0; for (const l of peelOrder) { if (!S.layers[l]) n++; else break; } return n; }
@@ -1125,13 +1172,15 @@ function updateLabels() {
 
 $('#btnReset').addEventListener('click', () => resetView());
 
-/* ------------------------------------------------------------------ picking: at most 3 rays, visible meshes only */
+/* ------------------------------------------------------------------ picking: at most 3 rays, over the parts the layer/region/peel/tendon rules show
+   (pickList is rebuilt whenever those rules change in applyVisibility, never on selection) */
 const raycaster = new THREE.Raycaster();
+raycaster.layers.set(1);
 const _ndc = new THREE.Vector2();
 function pickables() {
   if (pickList) return pickList;
   const list = [];
-  for (const p of parts) { if (!p.vis) continue; for (const m of p.meshes) if (m.visible) list.push(m); }
+  for (const p of parts) { if (!p.vis) continue; for (const m of p.meshes) if (m.userData.cls !== 'Tendon' || S.tendons) list.push(m); }
   return (pickList = list);
 }
 function rayPart(x, y, list) {
@@ -1157,7 +1206,7 @@ const ptrs = new Set(); let tap = null;
 canvasEl.addEventListener('pointerdown', e => {
   ptrs.add(e.pointerId);
   if (ptrs.size === 1) tap = { x: e.clientX, y: e.clientY, t: performance.now(), ok: true }; else if (tap) tap.ok = false;
-  closeResults(true);
+  closeResults();
 });
 canvasEl.addEventListener('pointermove', e => {
   if (tap && tap.ok && Math.hypot(e.clientX - tap.x, e.clientY - tap.y) > 8) tap.ok = false;
@@ -1446,11 +1495,21 @@ function renderInfo() {
 $('#btnInfo').addEventListener('click', () => { renderInfo(); openModal('#mInfo'); });
 
 /* ------------------------------------------------------------------ boot */
+// The service worker is registered only once boot has finished, so its precache never competes with the first model download.
+let bootDone = false, swRegistered = false;
+function reg() {
+  if (swRegistered || !bootDone || document.readyState !== 'complete') return;
+  if (!('serviceWorker' in navigator && /^https?:$/.test(location.protocol))) return;
+  swRegistered = true;
+  navigator.serviceWorker.register('./sw.js').catch(() => {});
+}
+addEventListener('load', reg);
 (async function boot() {
   try {
     W = innerWidth; H = innerHeight; renderer.setSize(W, H, false); camera.aspect = W / H; camera.updateProjectionMatrix();
     measureUI(); layoutSheet(false);
     const t0 = performance.now();
+    buildEnv();
     const gltfs = await loadAll();
     const n = buildParts(gltfs);
     buildMerged();
@@ -1463,28 +1522,28 @@ $('#btnInfo').addEventListener('click', () => { renderInfo(); openModal('#mInfo'
     const g = fitBox(boxOfParts(parts, 0), new THREE.Vector3(0, .05, 1), bottomOccupied());
     camera.position.copy(g.target).addScaledVector(g.dir, g.dist); controls.target.copy(g.target); camera.lookAt(g.target);
     controls.maxDistance = g.dist * 2.6; controls.update();
+    camera.updateMatrixWorld();
     renderer.render(scene, camera);
     setProgress(1, 'Ready');
     requestRender();
     window.__ready = true; $('#loadErr').hidden = true;
     window.__loadMs = performance.now() - t0;
     window.__app = {
-      S, parts, cardIdx, selectCard, clearSelection, setSheet, setRegion, camera, controls, scene, renderer, pickAt, resetView, frameRegion, setLabels,
+      S, parts, cardIdx, selectCard, clearSelection, setSheet, setRegion, camera, controls, scene, renderer, pickAt, pickables, resetView, frameRegion, setLabels,
       get lastPick() { return lastPick; }, get tweening() { return tweens.length > 0 || !!cameraTween; }, get sheetState() { return sheetState; }, count: n, THREE, searchCards,
     };
     setTimeout(() => { loadingEl.classList.add('done'); setTimeout(() => { loadingEl.style.display = 'none'; }, 550); }, 150);
+    bootDone = true; reg();
   } catch (err) {
     console.error(err);
     const kind = err && err.kind;
     fatal(kind === 'data' ? 'The anatomy data could not be loaded. Check your connection and try again.'
+      : kind === 'stall' ? 'Loading stalled. Check your connection and try again.'
       : kind === 'mismatch' ? 'The 3D model and the part list are out of sync, so no parts could be matched. Close the app and reopen it to get the latest version.'
       : 'The 3D model could not be loaded. Check your connection and try again.');
   }
 })();
 
-if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {
-  addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {}));
-}
 </script>
 <script>
 // Classic-script safety net: runs even when the module graph (three.js from the CDN) cannot load or execute.
