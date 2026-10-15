@@ -184,6 +184,26 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:28px;heigh
 input[type=range]::-moz-range-thumb{width:28px;height:28px;border:0;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.35)}
 .pct{width:2.9em;text-align:right;font-size:var(--fs-sm);color:var(--text2)}
 .sp{flex:1}
+/* square tool buttons (icon + tiny caption), same look as the rail */
+.tool{width:3.3rem;height:3.3rem;border-radius:18px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;flex:none;
+  font-size:var(--fs-2xs);font-weight:650;color:var(--text2);background:var(--fill);transition:background .15s,color .15s,transform .12s}
+.tool:active{transform:scale(.95)}
+.tool[aria-pressed="true"]{background:var(--accent);color:#fff}
+/* ---------- section cut panel ---------- */
+#secRows{display:flex;flex-direction:column;gap:7px}
+.seg{flex:1;min-width:0;display:flex;height:var(--ctl);min-height:40px;border-radius:999px;background:var(--fill);padding:3px;gap:2px}
+.seg button{flex:1;min-width:0;border-radius:999px;font-size:var(--fs-sm);font-weight:600;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:0 .4em;transition:background .15s,color .15s}
+.seg button[aria-checked="true"]{background:var(--glass-solid);color:var(--text);box-shadow:0 1px 4px rgba(0,0,0,.25)}
+.btn.look{padding:0 .8em}
+.keyfig{width:2.6rem;height:4.4rem;flex:none;overflow:visible;color:var(--accent)}
+.keyfig .sil{fill:none;stroke:var(--text3);stroke-width:4.5;stroke-linecap:round;stroke-linejoin:round}
+.keyfig .rng{fill:currentColor;opacity:.13}
+.keyfig .slab{fill:currentColor;opacity:.95}
+.stepper.thick .pl{min-width:3.6rem}
+.stepper.thick button{width:2.3rem}
+/* explode layer captions (rendered into #labels) */
+.cap{position:absolute;left:0;top:0;padding:.22em .7em;border-radius:.7em;font-size:var(--fs-2xs);font-weight:700;letter-spacing:.07em;font-variant-caps:all-small-caps;text-transform:lowercase;
+  line-height:1.3;white-space:nowrap;color:var(--text2);background:var(--lbl-bg);border:1px solid var(--glass-border);box-shadow:0 1px 4px rgba(0,0,0,.25);will-change:transform;transform:translate(-50%,0)}
 
 /* ---------- bottom sheet ---------- */
 #sheet{position:fixed;z-index:12;left:0;right:0;bottom:0;max-width:680px;margin:0 auto;height:700px;transform:translateY(110%);
@@ -303,7 +323,36 @@ input[type=range]::-moz-range-thumb{width:28px;height:28px;border:0;border-radiu
         <div class="pl"><b id="peelLbl">Peel 0/0</b><small id="peelSub">Skin on</small></div>
         <button id="peelPlus" aria-label="Peel next layer"><svg class="i" viewBox="0 0 24 24"><path d="M6 12h12M12 6v12"/></svg></button>
       </div>
-      <button id="btnLabels" class="btn" aria-pressed="false"><svg class="i" viewBox="0 0 24 24"><path d="M3.5 12V4.5h7.5l9.5 9.5-7.5 7.5z"/><circle cx="8" cy="9" r="1.2" fill="currentColor" stroke="none"/></svg>Labels</button>
+      <span class="sp"></span>
+      <button id="btnLabels" class="tool" aria-pressed="false" aria-label="Labels"><svg class="i" viewBox="0 0 24 24"><path d="M3.5 12V4.5h7.5l9.5 9.5-7.5 7.5z"/><circle cx="8" cy="9" r="1.2" fill="currentColor" stroke="none"/></svg>Labels</button>
+      <button id="btnSection" class="tool" aria-pressed="false" aria-label="Section cut" aria-expanded="false" aria-controls="secRows"><svg class="i" viewBox="0 0 24 24"><path d="M4 7.5l8-3.5 8 3.5-8 3.5z"/><path d="M4 7.5v9l8 3.5 8-3.5v-9"/><path d="M12 11v9"/><path d="M2.5 12.5h19" stroke-dasharray="2.2 2.2"/></svg>Section</button>
+    </div>
+    <div id="secRows" hidden>
+      <div class="row row-d">
+        <div class="seg" role="radiogroup" aria-label="Cut plane">
+          <button data-plane="axial" role="radio" aria-checked="true">Axial</button>
+          <button data-plane="coronal" role="radio" aria-checked="false">Coronal</button>
+          <button data-plane="sagittal" role="radio" aria-checked="false">Sagittal</button>
+        </div>
+        <button id="btnLookCut" class="btn look"><svg class="i" viewBox="0 0 24 24"><path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6z"/><circle cx="12" cy="12" r="2.6"/></svg>Look at cut</button>
+      </div>
+      <div class="row row-e">
+        <svg class="keyfig" viewBox="-4 0 108 180" aria-hidden="true">
+          <defs>
+            <path id="kfFront" d="M50 4a9.5 11 0 1 0 .01 0z M42 26c-9 2-17 4-20 10-3 6-3 18-5 34l-4 26M58 26c9 2 17 4 20 10 3 6 3 18 5 34l4 26M42 26c1 6 0 10-2 14 0 18 3 34 3 46-1 4-5 10-6 18l-4 54M58 26c-1 6 0 10 2 14 0 18-3 34-3 46 1 4 5 10 6 18l4 54M43 86c4 3 10 3 14 0"/>
+            <path id="kfSide" d="M50 4a9.5 11 0 1 0 .01 0z M45 26c-5 4-7 12-7 24 0 16 2 30 3 44l-2 30 3 34M55 26c6 5 8 14 8 26 0 14-3 26-3 38l1 26 4 42M53 30c3 8 4 18 4 28 0 10-2 20-3 32M42 158h24"/>
+          </defs>
+          <rect id="kfRange" class="rng" x="0" y="0" width="0" height="0" rx="2"/>
+          <use id="kfSil" class="sil" href="#kfFront"/>
+          <rect id="kfSlab" class="slab" x="0" y="0" width="0" height="0"/>
+        </svg>
+        <input id="secLevel" type="range" min="0" max="1000" value="500" step="1" aria-label="Cut position">
+        <div class="stepper thick" role="group" aria-label="Slab thickness">
+          <button id="thickMinus" aria-label="Thinner slab"><svg class="i" viewBox="0 0 24 24"><path d="M6 12h12"/></svg></button>
+          <div class="pl"><b id="thickLbl">2 cm</b><small>thick</small></div>
+          <button id="thickPlus" aria-label="Thicker slab"><svg class="i" viewBox="0 0 24 24"><path d="M6 12h12M12 6v12"/></svg></button>
+        </div>
+      </div>
     </div>
   </div>
 </section>
@@ -380,8 +429,16 @@ const LAYER_COLOR = { bone: '#efe3bf', ligament: '#e4dfd0', cns: '#e3b0b6', orga
 // Outer -> inner. The peel stepper hides these in order; chips follow the same order.
 const PEEL_ORDER = ['muscle_superficial', 'muscle_mid', 'muscle_deep', 'vein', 'artery', 'nerve', 'ligament', 'organ'];
 const CHIP_ORDER = ['muscle_superficial', 'muscle_mid', 'muscle_deep', 'tendon', 'vein', 'artery', 'nerve', 'organ', 'ligament', 'cns', 'bone'];
-const EXPLODE_K = 1.0;
 const MAX_LABELS = 20;
+// Explode = layer stack (exploded axonometric). These layers lift off the skeleton, one slot each, deep -> superficial.
+// Everything else (bone, joints, nerves, vessels, brain + spinal cord) stays home.
+const STACK_MOVE = ['organ', 'muscle_deep', 'muscle_mid', 'muscle_superficial'];
+const STACK_GAP = .16;          // gap between slots, as a fraction of the region's extent along the stack axis
+const STACK_GAP_MIN = .05;      // ...but never less than 5 cm
+const MAX_LAYERS = 12;          // size of the per-layer offset table in the vertex shader
+// Section cut: the three body planes (world axes: X = left/right, Y = up, Z = front/back).
+const SEC_AXES = { axial: new THREE.Vector3(0, 1, 0), coronal: new THREE.Vector3(0, 0, 1), sagittal: new THREE.Vector3(1, 0, 0) };
+const THICK_STEPS = [.005, .01, .02, .03, .05, .08, .12, .2, .3];   // slab thickness choices (m)
 
 // Colour classes = glTF material names. [colour, roughness]. Saturated atlas palette.
 const CLS = {
@@ -400,6 +457,8 @@ const MUSCLE_VARIANT = { muscle_superficial: 'Muscle_sup', muscle_mid: 'Muscle_m
 /* ------------------------------------------------------------------ state */
 const S = {
   layers: {}, tendons: true, region: 'all', labels: false, sel: null, explode: 0, explodeTarget: 0,
+  stackAxis: new THREE.Vector3(1, 0, 0),           // fixed while exploded; chosen from the view when the explode starts
+  section: { on: false, plane: 'axial', frac: .5, thick: .02 },   // frac = position inside the region's range along the plane normal
 };
 let DATA = null;                 // parts.json
 let CARDS = {}, GLOSSARY = [];   // cards.json
@@ -407,6 +466,8 @@ let parts = [];                  // built parts
 let cardIdx = new Map();         // card key -> { key, parts[], card, name, latin, ... }
 let regionName = new Map(), layerName = new Map();
 let pickList = null;
+let layerList = [];              // layer ids in stack-table order (index = aLayer)
+const bodyBox = new THREE.Box3();   // whole body, unexploded (key figure + section ranges)
 
 /* ------------------------------------------------------------------ loading UI */
 const loadingEl = $('#loading'), loadBar = $('#loadBar'), loadFill = $('#loadFill'), loadMsg = $('#loadMsg'), loadPct = $('#loadPct'), figRect = $('#figRect');
@@ -434,12 +495,18 @@ try {
   throw e;
 }
 renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+renderer.localClippingEnabled = true;   // section cut: two world-space planes on every material (see applySection)
 renderer.setClearColor(0x000000, 0);
+// Slab = the space between slabPlanes[0] and slabPlanes[1]. invPlanes is the same pair turned inside out; with clipIntersection
+// it clips only the slab, so the "removed" sides can be drawn as a faint ghost. When the cut is off the constants are huge and
+// nothing is clipped (the planes stay attached, so switching the cut on never recompiles a shader).
+const slabPlanes = [new THREE.Plane(new THREE.Vector3(0, 1, 0), 1e4), new THREE.Plane(new THREE.Vector3(0, -1, 0), 1e4)];
+const invPlanes = [new THREE.Plane(new THREE.Vector3(0, -1, 0), 1e4), new THREE.Plane(new THREE.Vector3(0, 1, 0), 1e4)];
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure = 1.0;
 const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(32, 1, 0.02, 14);
+const camera = new THREE.PerspectiveCamera(32, 1, 0.02, 60);   // far enough for a fully exploded stack on a portrait screen
 scene.add(camera);
 scene.matrixWorldAutoUpdate = false;   // static scene: only the camera (and its lights) and the exploding body move; see frame() / refreshWorld()
 scene.environmentIntensity = 0.42;
@@ -481,8 +548,7 @@ let viewShift = 0;     // constant projection offset (px) so the orbit centre si
 function applyTheme() {
   const d = isDark();
   renderer.toneMappingExposure = d ? 1.0 : .95;
-  for (const [k, m] of ghostMats) setGhostColor(m, k);
-  for (const m of ghostMats.values()) m.opacity = d ? .12 : .2;
+  applyGhostTheme();
   const tc = document.querySelector('meta[name="theme-color"]'); if (tc) tc.content = d ? '#0b0d12' : '#e9edf5';
   requestRender();
 }
@@ -495,7 +561,7 @@ function clsDef(c) { return CLS[c] || CLS.Organ_other; }
 function getBase(c) {
   let m = baseMats.get(c); if (m) return m;
   const [col, r] = clsDef(c);
-  m = new THREE.MeshStandardMaterial({ color: col, roughness: r, metalness: 0.02, side: THREE.DoubleSide });
+  m = new THREE.MeshStandardMaterial({ color: col, roughness: r, metalness: 0.02, side: THREE.DoubleSide, clippingPlanes: slabPlanes });
   m.name = c; baseMats.set(c, m); return m;
 }
 function getSel(c) {
@@ -503,7 +569,7 @@ function getSel(c) {
   const [col, r] = clsDef(c);
   _c.setHex(col); _c.getHSL(_hsl);
   const boosted = new THREE.Color().setHSL(_hsl.h, Math.min(1, _hsl.s * 1.18 + .08), clamp(_hsl.l * 1.04 + .015, 0, .9));
-  m = new THREE.MeshStandardMaterial({ color: boosted, roughness: Math.max(.2, r - .06), metalness: 0.02, side: THREE.DoubleSide, emissive: boosted.clone(), emissiveIntensity: .18 });
+  m = withCut(new THREE.MeshStandardMaterial({ color: boosted, roughness: Math.max(.2, r - .06), metalness: 0.02, side: THREE.DoubleSide, emissive: boosted.clone(), emissiveIntensity: .18, clippingPlanes: slabPlanes }), c);
   m.name = c + '-sel'; selMats.set(c, m); return m;
 }
 function setGhostColor(m, c) {
@@ -512,14 +578,41 @@ function setGhostColor(m, c) {
   if (isDark()) m.color.setHSL(_hsl.h, _hsl.s * .22, .78);      // pale, desaturated, see-through on dark
   else m.color.setHSL(_hsl.h, _hsl.s * .3, .36);                 // soft slate on light
 }
-// Merged-bucket materials get a tiny vertex-shader hook: position += aExp * uExplode, so the whole explode runs on the GPU.
-const uExpl = { value: 0 };
-function withExplode(m) {
+// Section cut face: where a slab plane opens a part, its inside (back faces) shows a flat colour, so the cut reads as a solid
+// section rather than a hollow shell. uCutOn is shared; the colour is per colour class (the part colour, darker and calmer).
+const uCutOn = { value: 0 };
+function cutColor(c) {
+  const [col] = clsDef(c);
+  _c.setHex(col); _c.getHSL(_hsl);
+  return new THREE.Color().setHSL(_hsl.h, _hsl.s * .8, clamp(_hsl.l * .62 + .02, .05, .7));
+}
+// Each shader hook adds its own tag to the program cache key. Without it, materials whose onBeforeCompile source text is the
+// same (for example getSel and getMBase, both ending in withCut) would share one compiled program and lose the other hooks.
+function tagKey(m, tag) { const prev = m.customProgramCacheKey.bind(m); m.customProgramCacheKey = () => tag + '|' + prev(); return m; }
+function withCut(m, c) {
+  tagKey(m, 'cut');
+  const prev = m.onBeforeCompile;
+  const cc = cutColor(c);
   m.onBeforeCompile = sh => {
-    sh.uniforms.uExplode = uExpl;
+    if (prev) prev(sh);
+    sh.uniforms.uCutOn = uCutOn; sh.uniforms.uCutColor = { value: cc };
+    sh.fragmentShader = sh.fragmentShader
+      .replace('#include <common>', '#include <common>\nuniform float uCutOn;\nuniform vec3 uCutColor;')
+      .replace('#include <opaque_fragment>', '#include <opaque_fragment>\nif (uCutOn > 0.5 && !gl_FrontFacing) gl_FragColor = vec4(uCutColor, gl_FragColor.a);');
+  };
+  return m;
+}
+// Merged-bucket materials get a tiny vertex-shader hook: position += uStack[layer] * uExplode, so the whole explode runs on the
+// GPU. uStack holds one offset per layer (the stack slot), aLayer is the layer index baked per vertex.
+const uExpl = { value: 0 }, uZero = { value: 0 };
+const uStack = { value: Array.from({ length: MAX_LAYERS }, () => new THREE.Vector3()) };
+function withExplode(m, explodeU = uExpl) {
+  tagKey(m, 'stack');
+  m.onBeforeCompile = sh => {
+    sh.uniforms.uExplode = explodeU; sh.uniforms.uStack = uStack;
     sh.vertexShader = sh.vertexShader
-      .replace('#include <common>', '#include <common>\nattribute vec3 aExp;\nuniform float uExplode;')
-      .replace('#include <begin_vertex>', '#include <begin_vertex>\ntransformed += aExp * uExplode;');
+      .replace('#include <common>', '#include <common>\nattribute float aLayer;\nuniform float uExplode;\nuniform vec3 uStack[' + MAX_LAYERS + '];')
+      .replace('#include <begin_vertex>', '#include <begin_vertex>\ntransformed += uStack[int(aLayer + 0.5)] * uExplode;');
   };
   return m;
 }
@@ -527,14 +620,62 @@ const mBaseMats = new Map();
 function getMBase(c) {
   let m = mBaseMats.get(c); if (m) return m;
   const [col, r] = clsDef(c);
-  m = withExplode(new THREE.MeshStandardMaterial({ color: col, roughness: r, metalness: 0.02, side: THREE.DoubleSide }));
+  m = withCut(withExplode(new THREE.MeshStandardMaterial({ color: col, roughness: r, metalness: 0.02, side: THREE.DoubleSide, clippingPlanes: slabPlanes })), c);
   m.name = c + '-m'; mBaseMats.set(c, m); return m;
 }
+function ghostMat(c, explodeU, planes, inter, extra) {
+  const [, r] = clsDef(c);
+  const m = withExplode(new THREE.MeshStandardMaterial(Object.assign({ roughness: Math.max(.5, r), metalness: 0, transparent: true, opacity: .12, depthWrite: false, side: THREE.FrontSide,
+    polygonOffset: true, polygonOffsetFactor: 2, polygonOffsetUnits: 2, clippingPlanes: planes, clipIntersection: inter }, extra || {})), explodeU);
+  setGhostColor(m, c); return m;
+}
+// isolate ghost (everything but the selection)
 function getGhost(c) {
   let m = ghostMats.get(c); if (m) return m;
-  const [, r] = clsDef(c);
-  m = withExplode(new THREE.MeshStandardMaterial({ roughness: Math.max(.5, r), metalness: 0, transparent: true, opacity: isDark() ? .12 : .2, depthWrite: false, side: THREE.FrontSide, polygonOffset: true, polygonOffsetFactor: 2, polygonOffsetUnits: 2 }));
-  setGhostColor(m, c); m.name = c + '-ghost'; ghostMats.set(c, m); return m;
+  m = ghostMat(c, uExpl, slabPlanes, false); m.name = c + '-ghost'; ghostMats.set(c, m); return m;
+}
+// Section ghost: the parts of the body outside the slab, faint, for context. Drawn in two passes so it never piles up when
+// you look along the body (an axial slab seen from above has the whole trunk behind it): a depth-only pass finds the nearest
+// ghost surface per pixel, then the colour pass draws only that surface (EqualDepth).
+// The side of the slab nearer the camera is removed outright, like a plan cut (see updateSectionSide).
+const uSecN = { value: new THREE.Vector3(0, 1, 0) }, uSecL = { value: 0 }, uNearSign = { value: 1 }, uNearAlpha = { value: 1 };
+function withSide(m) {
+  tagKey(m, 'side');
+  const prev = m.onBeforeCompile;
+  m.onBeforeCompile = sh => {
+    if (prev) prev(sh);
+    Object.assign(sh.uniforms, { uSecN, uSecL, uNearSign, uNearAlpha });
+    sh.vertexShader = sh.vertexShader
+      .replace('#include <common>', '#include <common>\nuniform vec3 uSecN;\nuniform float uSecL;\nvarying float vSecD;')
+      .replace('#include <project_vertex>', 'vSecD = dot((modelMatrix * vec4(transformed, 1.0)).xyz, uSecN) - uSecL;\n#include <project_vertex>');
+    sh.fragmentShader = sh.fragmentShader
+      .replace('#include <common>', '#include <common>\nuniform float uNearSign;\nuniform float uNearAlpha;\nvarying float vSecD;')
+      .replace('#include <clipping_planes_fragment>', '#include <clipping_planes_fragment>\nfloat secA = (vSecD * uNearSign > 0.0) ? uNearAlpha : 1.0;\nif (secA < 0.002) discard;')
+      .replace('#include <color_fragment>', '#include <color_fragment>\ndiffuseColor.a *= secA;');
+  };
+  return m;
+}
+// (same material class and vertex code as the colour pass, so both passes land on identical depths)
+// transparent: true puts the depth pass after every opaque draw, so the slab is complete before the ghost depths go in;
+// colorWrite: false keeps it invisible.
+const secDepthMat = withSide(withExplode(new THREE.MeshStandardMaterial({ colorWrite: false, depthWrite: true, transparent: true, side: THREE.FrontSide, clippingPlanes: invPlanes, clipIntersection: true })));
+secDepthMat.name = 'sec-depth';
+const secGhostMats = new Map();
+function getSecGhost(c) {
+  let m = secGhostMats.get(c); if (m) return m;
+  m = withSide(ghostMat(c, uExpl, invPlanes, true, { depthFunc: THREE.EqualDepth, polygonOffset: false })); m.name = c + '-secghost'; secGhostMats.set(c, m); return m;
+}
+// home ghost: while exploded, the lifted layers also show faintly where they came from (explode uniform pinned at 0)
+const homeGhostMats = new Map();
+function getHomeGhost(c) {
+  let m = homeGhostMats.get(c); if (m) return m;
+  m = ghostMat(c, uZero, slabPlanes, false); m.name = c + '-homeghost'; homeGhostMats.set(c, m); return m;
+}
+function applyGhostTheme() {
+  const d = isDark();
+  for (const [k, m] of ghostMats) { setGhostColor(m, k); m.opacity = d ? .12 : .2; }
+  for (const [k, m] of secGhostMats) { setGhostColor(m, k); m.opacity = d ? .16 : .22; }   // a single layer (depth pre-pass), so it reads as one calm surface
+  for (const [k, m] of homeGhostMats) { setGhostColor(m, k); m.opacity = d ? .07 : .12; }
 }
 
 /* ------------------------------------------------------------------ helpers: names */
@@ -558,26 +699,34 @@ function cancelCameraTween() {
   const i = tweens.indexOf(t); if (i >= 0) tweens.splice(i, 1);
 }
 const sheetEl = $('#sheet');
-let offs = null, basePos = null;     // Float32Arrays, 3 per part
+let basePos = null;                  // Float32Array, 3 per part: each part's home position
+let layerIdx = null;                 // Uint8Array, 1 per part: index into the stack tables
+// Stack tables: offset per layer at explode = 100% (3 floats per layer). stackTgt is the layout; stackCur eases toward it.
+const stackCur = new Float32Array(MAX_LAYERS * 3), stackTgt = new Float32Array(MAX_LAYERS * 3);
+let stackRanks = [];                 // [{ layer, rank }] for the current layout (rank 0 = stays home)
+let stackStep = 0;                   // distance between slots (m)
 const _o = new THREE.Vector3();
 
 function applyExplode() {
-  const t = S.explode * EXPLODE_K;
+  const t = S.explode;
   for (let i = 0; i < parts.length; i++) {
-    const p = parts[i], j = i * 3;
+    const p = parts[i], j = i * 3, k = layerIdx[i] * 3;
     const e = p.node.matrix.elements;
-    e[12] = basePos[j] + offs[j] * t; e[13] = basePos[j + 1] + offs[j + 1] * t; e[14] = basePos[j + 2] + offs[j + 2] * t;
+    e[12] = basePos[j] + stackCur[k] * t; e[13] = basePos[j + 1] + stackCur[k + 1] * t; e[14] = basePos[j + 2] + stackCur[k + 2] * t;
   }
+  for (let l = 0; l < MAX_LAYERS; l++) uStack.value[l].set(stackCur[l * 3], stackCur[l * 3 + 1], stackCur[l * 3 + 2]);
   uExpl.value = t; worldDirty = true;
   if (S.sel) refreshWorld();
+  if (mergedReady) syncHomeGhost();
 }
 function applyViewOffset() {
   if (Math.abs(viewShift) < 0.4) camera.clearViewOffset();
   else camera.setViewOffset(W, H, 0, viewShift, W, H);
 }
-function partOffset(p, t, out) {
-  const i = p.i * 3; const k = t * EXPLODE_K;
-  return out.set(offs[i] * k, offs[i + 1] * k, offs[i + 2] * k);
+// Offset of a part at explode amount t. `table` is stackCur (what is on screen) or stackTgt (where the layout is heading).
+function partOffset(p, t, out, table = stackCur) {
+  const k = layerIdx[p.i] * 3;
+  return out.set(table[k] * t, table[k + 1] * t, table[k + 2] * t);
 }
 
 function frame(now) {
@@ -585,11 +734,22 @@ function frame(now) {
   const dt = Math.min(.05, (now - (lastT || now)) / 1000 || .016); lastT = now;
   let busy = false;
   const dE = S.explodeTarget - S.explode;
+  let moved = false;
   if (Math.abs(dE) > 0.0004) {
     S.explode = reduceMotion ? S.explodeTarget : S.explode + dE * (1 - Math.exp(-dt * 10));
     if (Math.abs(S.explodeTarget - S.explode) < 0.0006) S.explode = S.explodeTarget;
-    applyExplode(); syncExplodeUI(); busy = true;
+    moved = true; syncExplodeUI();
   }
+  // the layout (slot positions) eases too, so a layer toggle or region change slides the stack instead of jumping it
+  let dmax = 0;
+  for (let i = 0; i < stackCur.length; i++) dmax = Math.max(dmax, Math.abs(stackTgt[i] - stackCur[i]));
+  if (dmax > 0.0002) {
+    const a = reduceMotion ? 1 : 1 - Math.exp(-dt * 9);
+    for (let i = 0; i < stackCur.length; i++) stackCur[i] += (stackTgt[i] - stackCur[i]) * a;
+    if (dmax < 0.0004 || reduceMotion) stackCur.set(stackTgt);
+    moved = true;
+  }
+  if (moved) { applyExplode(); busy = true; }
   if (tweens.length) {
     const cur = tweens; tweens = [];
     for (const tw of cur) {
@@ -610,7 +770,9 @@ function frame(now) {
   }
   controls.update();
   camera.updateMatrixWorld();   // scene.matrixWorldAutoUpdate is off, so the camera (and the lights on it) is updated here
+  if (S.section.on) updateSectionSide();
   renderer.render(scene, camera);
+  updateCaptions();
   if (S.labels) updateLabels();
   if (busy) requestRender();
 }
@@ -661,10 +823,15 @@ function bottomOccupied() {
   return dockBase() + dock.offsetHeight + 8;
 }
 // The projection centre is fixed (never changes on select / collapse): the middle of the free area with the dock expanded.
-function computeShift() {
+let shiftTween = null;
+function computeShift(animate = false) {
   const bottomExpanded = dockBase() + dockExpandedH + 8;
   const nv = (bottomExpanded - topOccupied()) / 2;
-  if (Math.abs(nv - viewShift) > .5) { viewShift = nv; applyViewOffset(); }
+  if (Math.abs(nv - viewShift) <= .5) return;
+  if (shiftTween) { shiftTween.dead = true; shiftTween = null; }
+  if (!animate) { viewShift = nv; applyViewOffset(); return; }
+  const from = viewShift;   // the dock grew or shrank (section panel): glide the picture to the new free area instead of jumping
+  shiftTween = tween(320, k => { viewShift = from + (nv - from) * k; applyViewOffset(); });
 }
 
 const _right = new THREE.Vector3(), _up = new THREE.Vector3(), _dirV = new THREE.Vector3(), _cc = new THREE.Vector3();
@@ -709,7 +876,7 @@ function moveCamera(g, dur = 650) {
 const _bx = new THREE.Box3(), _bt = new THREE.Box3();
 function boxOfParts(list, t = S.explodeTarget) {
   _bx.makeEmpty();
-  for (const p of list) { partOffset(p, t, _o); _bt.copy(p.box0).translate(_o); _bx.union(_bt); }
+  for (const p of list) { partOffset(p, t, _o, stackTgt); _bt.copy(p.box0).translate(_o); _bx.union(_bt); }
   return _bx.clone();
 }
 function viewDirFor(regionId) {
@@ -730,6 +897,8 @@ function resetView() {
   const id = S.region, reg = (id === 'all' ? parts : parts.filter(p => p.region === id));
   const vis = reg.filter(p => p.vis);
   const dir = new THREE.Vector3(0, .06, id === 'back' ? -1 : 1);
+  // Reset looks from the front (or the back), so an open explode stack is re-laid along that view's left-right axis first.
+  if (S.explodeTarget > 0) { S.stackAxis.set(id === 'back' ? -1 : 1, 0, 0); layoutStack(); }
   moveCamera(fitBox(boxOfParts(vis.length ? vis : reg), dir, bottomOccupied()));
 }
 function frameParts(list) {
@@ -857,13 +1026,17 @@ function buildParts(gltfs) {
   if (missing) console.warn('Parts missing from glb:', missing, 'of', DATA.parts.length);
   window.__missing = missing;
   if (!parts.length) throw Object.assign(new Error('No parts in the 3D model matched the part list.'), { kind: 'mismatch' });
-  // explode vectors (computed once)
-  offs = new Float32Array(parts.length * 3); basePos = new Float32Array(parts.length * 3);
+  // home positions + layer index (the explode offset of a part is uStack[layer] * explode; see layoutStack)
+  basePos = new Float32Array(parts.length * 3); layerIdx = new Uint8Array(parts.length);
+  layerList = (DATA.layers || []).map(l => l.id);
   for (const p of parts) {
-    const m = 0.035 * p.tier + 0.6 * p.radial, j = p.i * 3;
-    offs[j] = p.dir[0] * m; offs[j + 1] = p.dir[1] * m; offs[j + 2] = p.dir[2] * m;
+    const j = p.i * 3;
     basePos[j] = p.node.position.x; basePos[j + 1] = p.node.position.y; basePos[j + 2] = p.node.position.z;
+    let li = layerList.indexOf(p.layer); if (li < 0) { li = layerList.length; layerList.push(p.layer); }
+    layerIdx[p.i] = Math.min(li, MAX_LAYERS - 1);
   }
+  if (layerList.length > MAX_LAYERS) console.warn('More layers than stack slots:', layerList.length);
+  bodyBox.makeEmpty(); for (const p of parts) bodyBox.union(p.box0);
   // card index: left + right (+ midline) share one entry
   cardIdx = new Map();
   for (const p of parts) {
@@ -897,41 +1070,61 @@ function buildMerged() {
   for (const g of groups.values()) {
     let nv = 0, ni = 0;
     for (const m of g.meshes) { const geo = m.geometry; nv += geo.attributes.position.count; ni += geo.index ? geo.index.count : geo.attributes.position.count; }
-    const pos = new Float32Array(nv * 3), nor = new Float32Array(nv * 3), ex = new Float32Array(nv * 3), idx = nv > 65535 ? new Uint32Array(ni) : new Uint16Array(ni);
+    const pos = new Float32Array(nv * 3), nor = new Float32Array(nv * 3), lay = new Float32Array(nv), idx = nv > 65535 ? new Uint32Array(ni) : new Uint16Array(ni);
     let vo = 0, io = 0;
     for (const m of g.meshes) {
       const geo = m.geometry, P = geo.attributes.position, N = geo.attributes.normal, I = geo.index;
       nm.getNormalMatrix(m.matrixWorld);
-      const pj = m.userData.part.i * 3, ox = offs[pj], oy = offs[pj + 1], oz = offs[pj + 2];
+      const li = layerIdx[m.userData.part.i];
       for (let i = 0; i < P.count; i++) {
         v.fromBufferAttribute(P, i).applyMatrix4(m.matrixWorld);
         pos[(vo + i) * 3] = v.x; pos[(vo + i) * 3 + 1] = v.y; pos[(vo + i) * 3 + 2] = v.z;
-        ex[(vo + i) * 3] = ox; ex[(vo + i) * 3 + 1] = oy; ex[(vo + i) * 3 + 2] = oz;
+        lay[vo + i] = li;
         if (N) { n.fromBufferAttribute(N, i).applyMatrix3(nm).normalize(); nor[(vo + i) * 3] = n.x; nor[(vo + i) * 3 + 1] = n.y; nor[(vo + i) * 3 + 2] = n.z; }
       }
       if (I) for (let i = 0; i < I.count; i++) idx[io++] = I.getX(i) + vo; else for (let i = 0; i < P.count; i++) idx[io++] = vo + i;
       vo += P.count;
     }
     const geo = new THREE.BufferGeometry();
-    geo.setAttribute('position', new THREE.BufferAttribute(pos, 3)); geo.setAttribute('normal', new THREE.BufferAttribute(nor, 3)); geo.setAttribute('aExp', new THREE.BufferAttribute(ex, 3)); geo.setIndex(new THREE.BufferAttribute(idx, 1));
+    geo.setAttribute('position', new THREE.BufferAttribute(pos, 3)); geo.setAttribute('normal', new THREE.BufferAttribute(nor, 3)); geo.setAttribute('aLayer', new THREE.BufferAttribute(lay, 1)); geo.setIndex(new THREE.BufferAttribute(idx, 1));
     geo.computeBoundingSphere();
     const mesh = new THREE.Mesh(geo, getMBase(g.cls)); mesh.visible = false; mesh.matrixAutoUpdate = false; mesh.frustumCulled = false; mesh.userData.bucket = g;
-    mergedRoot.add(mesh); g.mesh = mesh; buckets.push(g);
+    // Companions share the geometry: the section ghost (depth pass + colour pass, outside the slab) and the home ghost (a
+    // lifted layer, faint, at its home spot).
+    const mk = (mat, order) => { const c = new THREE.Mesh(geo, mat); c.visible = false; c.matrixAutoUpdate = false; c.frustumCulled = false; c.renderOrder = order; return c; };
+    const secDepth = mk(secDepthMat, 1), secMesh = mk(getSecGhost(g.cls), 2), homeMesh = mk(getHomeGhost(g.cls), 3);
+    mergedRoot.add(mesh, secDepth, secMesh, homeMesh); g.mesh = mesh; g.secDepth = secDepth; g.secMesh = secMesh; g.homeMesh = homeMesh; buckets.push(g);
   }
   mergedRoot.updateMatrixWorld(true);
   mergedReady = true;
 }
 const mergedRoot = new THREE.Group(); scene.add(mergedRoot);
+// Compile every shader variant once at boot (solid with cut faces, isolate ghost, section ghost, home ghost, selected), so the
+// first tap, explode, or cut never stalls on a shader compile.
+function precompile() {
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.Float32BufferAttribute([0, 0, 0, 0, .001, 0, .001, 0, 0], 3));
+  geo.setAttribute('normal', new THREE.Float32BufferAttribute([0, 0, 1, 0, 0, 1, 0, 0, 1], 3));
+  geo.setAttribute('aLayer', new THREE.Float32BufferAttribute([0, 0, 0], 1));
+  const g = new THREE.Group(); g.add(new THREE.Mesh(geo, getGhost('Bone')), new THREE.Mesh(geo, getSel('Bone')));
+  // compile() only visits visible objects, so add one stand-in per bucket material variant
+  for (const m of [getMBase('Bone'), getSecGhost('Bone'), secDepthMat, getHomeGhost('Bone')]) g.add(new THREE.Mesh(geo, m));
+  try { renderer.compile(g, camera, scene); } catch (e) { console.warn('precompile', e); }
+  geo.dispose();
+}
 function bucketVisible(g) { return !!S.layers[g.layer] && (S.region === 'all' || g.region === S.region) && (g.cls !== 'Tendon' || S.tendons); }
 // Everything is drawn from the merged buckets (explode runs in the vertex shader). The only per-part meshes drawn are the
 // isolated structure (solid, at its CPU explode position); every other per-part mesh is on the pick-only layer.
 function syncRender() {
   if (!parts.length) return;
-  const sel = S.sel;
+  const sel = S.sel, sec = S.section.on, lifted = S.explode > .02 && !sel;
   for (const g of buckets) {
     const on = bucketVisible(g); g.mesh.visible = on;
     if (on) { const want = sel ? getGhost(g.cls) : getMBase(g.cls); if (g.mesh.material !== want) g.mesh.material = want; }
+    g.secDepth.visible = g.secMesh.visible = on && sec;
+    g.homeMesh.visible = on && lifted && stackRank(g.layer) > 0;
   }
+  lastLifted = lifted;
   // Per-part meshes live on layer 1 (pick-only). Only the isolated selection is also put on layer 0, which the camera renders.
   for (const p of parts) {
     const draw = !!sel && p.vis && p.c === sel;
@@ -943,6 +1136,14 @@ function syncRender() {
 }
 let worldDirty = false;
 function refreshWorld() { if (worldDirty) { body.updateMatrixWorld(true); worldDirty = false; } }
+// cheap bucket-only pass used while the explode animates (home ghosts appear once the layers have lifted a little)
+let lastLifted = false;
+function syncHomeGhost() {
+  const lifted = S.explode > .02 && !S.sel;
+  if (lifted === lastLifted) return;
+  lastLifted = lifted;
+  for (const g of buckets) g.homeMesh.visible = bucketVisible(g) && lifted && stackRank(g.layer) > 0;
+}
 
 /* ------------------------------------------------------------------ appearance: tap = isolate (ghost style) */
 function applyAppearance() {
@@ -965,8 +1166,10 @@ function applyVisibility() {
   }
   pickList = null; labelBuckets = null;
   if (S.sel && !S.sel.parts.some(p => p.vis)) clearSelection();
+  layoutStack();
   syncRender();
   updateChips(); updatePeel();
+  if (S.section.on) applySection();
   requestRender();
 }
 
@@ -1036,7 +1239,59 @@ $('#peelMinus').addEventListener('click', () => {
   const n = peelLevel(); if (n > 0) { S.layers[peelOrder[n - 1]] = true; applyVisibility(); }
 });
 
-/* ------------------------------------------------------------------ explode UI (never moves the camera) */
+/* ------------------------------------------------------------------ explode = layer stack (never moves the camera)
+   The skeleton (bone, joints, nerves, vessels, brain + spinal cord) stays home. Organs and the three muscle layers lift off
+   along one horizontal axis, one slot each, deep -> superficial, like the floors of an exploded axonometric. The slot pitch
+   is the region's extent along that axis plus a gap, so at 100% no two layers overlap. Empty or hidden layers take no slot. */
+const regionBoxCache = new Map();
+function regionBox(id) {
+  let b = regionBoxCache.get(id);
+  if (!b) { b = new THREE.Box3(); for (const p of parts) if (id === 'all' || p.region === id) b.union(p.box0); regionBoxCache.set(id, b); }
+  return b;
+}
+function stackRank(layer) { const r = stackRanks.find(x => x.layer === layer); return r ? r.rank : 0; }
+// The stack runs toward the right of the screen, snapped to the nearest world axis (X or Z). Chosen when the explode starts
+// from zero and kept until it returns to zero, so orbiting never re-arranges the stack.
+function chooseStackAxis() {
+  const e = camera.matrixWorld.elements;   // column 0 = camera right, in world space
+  const rx = e[0], rz = e[2];
+  // The body's natural line-up axis is left-right, so X wins unless the view is clearly from the side.
+  if (Math.abs(rz) > .8) S.stackAxis.set(0, 0, rz >= 0 ? 1 : -1); else S.stackAxis.set(rx >= 0 || Math.abs(rx) < 1e-6 ? 1 : -1, 0, 0);
+  fitStackToCut();
+}
+// A cut is measured in world space, so the stack must not run along the cut normal (the lifted layers would leave the slab).
+// Sagittal cut -> stack along Z; coronal cut -> stack along X; axial is never a problem (the stack is horizontal).
+function fitStackToCut() {
+  if (!S.section.on) return false;
+  const ax = SEC_AXES[S.section.plane];
+  if (Math.abs(ax.x * S.stackAxis.x + ax.z * S.stackAxis.z) < .5) return false;
+  if (ax.x) S.stackAxis.set(0, 0, 1); else S.stackAxis.set(1, 0, 0);
+  return true;
+}
+function layoutStack() {
+  if (!parts.length) return;
+  fitStackToCut();
+  const box = regionBox(S.region), ax = S.stackAxis;
+  const extent = Math.abs(ax.x) * (box.max.x - box.min.x) + Math.abs(ax.z) * (box.max.z - box.min.z);
+  stackStep = extent + Math.max(STACK_GAP_MIN, STACK_GAP * extent);
+  const present = new Set();
+  for (const p of parts) if (p.vis) present.add(p.layer);
+  stackRanks = []; let rank = 0;
+  for (const l of STACK_MOVE) if (present.has(l)) stackRanks.push({ layer: l, rank: ++rank });
+  stackTgt.fill(0);
+  for (const r of stackRanks) {
+    const li = layerList.indexOf(r.layer); if (li < 0 || li >= MAX_LAYERS) continue;
+    stackTgt[li * 3] = ax.x * stackStep * r.rank; stackTgt[li * 3 + 1] = 0; stackTgt[li * 3 + 2] = ax.z * stackStep * r.rank;
+  }
+  if (S.explode === 0 && S.explodeTarget === 0) { stackCur.set(stackTgt); applyExplode(); }   // nothing on screen moves; just adopt the layout
+  requestRender();
+}
+function setExplodeTarget(v) {
+  v = clamp(v, 0, 1);
+  if (v > 0 && S.explodeTarget === 0 && S.explode === 0) { chooseStackAxis(); layoutStack(); }
+  S.explodeTarget = v;
+  syncExplodeUI(); requestRender();
+}
 const slider = $('#explode'), pct = $('#pct'), btnExplode = $('#btnExplode');
 let sliderDragging = false;
 function syncExplodeUI() {
@@ -1048,10 +1303,195 @@ function syncExplodeUI() {
   btnExplode.querySelector('span').textContent = on ? 'Collapse' : 'Explode';
   btnExplode.setAttribute('aria-pressed', String(on));
 }
-slider.addEventListener('input', () => { sliderDragging = true; S.explodeTarget = slider.value / 100; syncExplodeUI(); requestRender(); });
+slider.addEventListener('input', () => { sliderDragging = true; setExplodeTarget(slider.value / 100); });
 const endDrag = () => { sliderDragging = false; syncExplodeUI(); };
 slider.addEventListener('change', endDrag); slider.addEventListener('pointerup', endDrag); slider.addEventListener('touchend', endDrag);
-btnExplode.addEventListener('click', () => { sliderDragging = false; S.explodeTarget = S.explodeTarget > .5 ? 0 : 1; syncExplodeUI(); requestRender(); });
+btnExplode.addEventListener('click', () => { sliderDragging = false; setExplodeTarget(S.explodeTarget > .5 ? 0 : 1); });
+
+/* explode captions: one small label under each slot (rendered into #labels, placed every frame while exploded) */
+const capPool = [];
+const _cp = new THREE.Vector3(), _cb = new THREE.Vector3();
+function captionFor(rank) {
+  if (rank > 0) { const r = stackRanks.find(x => x.rank === rank); return r ? (layerName.get(r.layer) || r.layer) : ''; }
+  if (S.layers.bone) return (S.layers.artery || S.layers.vein || S.layers.nerve) ? 'Skeleton & vessels' : 'Skeleton';
+  if (S.layers.nerve || S.layers.cns) return 'Nerves';
+  if (S.layers.artery || S.layers.vein) return 'Vessels';
+  return 'In place';
+}
+function updateCaptions() {
+  const show = S.explode > .05 && !S.sel && stackRanks.length;
+  let n = 0; const rowBox = [[1e9, -1e9], [1e9, -1e9]];
+  if (show) {
+    const box = regionBox(S.region); box.getCenter(_cb);
+    const topLim = topOccupied() + 2, botLim = H - bottomOccupied() + 4, pad = (box.max.y - box.min.y) * .035;
+    for (let rank = 0; rank <= stackRanks.length; rank++) {
+      // under the slot if there is room, else above it
+      let x = 0, y = 0, ok = false;
+      for (const yy of [box.min.y - pad, box.max.y + pad]) {
+        _cb.y = yy;
+        if (rank > 0) { const li = layerList.indexOf(stackRanks[rank - 1].layer) * 3; _cp.set(_cb.x + stackCur[li] * S.explode, _cb.y, _cb.z + stackCur[li + 2] * S.explode); }
+        else _cp.copy(_cb);
+        _cp.project(camera);
+        if (_cp.z > 1 || _cp.z < -1) continue;
+        x = (_cp.x * .5 + .5) * W; y = (-_cp.y * .5 + .5) * H + (yy < box.min.y ? 6 : -24);
+        if (x >= 10 && x <= W - 10 && y >= topLim && y <= botLim - 28) { ok = true; break; }
+      }
+      if (!ok) continue;
+      while (capPool.length <= n) { const e = el('div', 'cap'); labelsEl.append(e); capPool.push(e); }
+      const e = capPool[n]; const txt = captionFor(rank);
+      if (e._txt !== txt) { e._txt = txt; e.textContent = txt; e._w = 0; }
+      if (e._on !== true) { e.style.display = ''; e._on = true; }
+      if (!e._w) e._w = e.offsetWidth || 80;
+      // two rows: a caption that would overlap the last one in its row drops to the second row; if that is taken too, it is skipped
+      const left = x - e._w / 2, right = x + e._w / 2;
+      const hit = r => left < rowBox[r][1] + 6 && right > rowBox[r][0] - 6;
+      let row = hit(0) ? 1 : 0;
+      if (row === 1 && hit(1)) { if (e._on !== false) { e.style.display = 'none'; e._on = false; } continue; }
+      rowBox[row][0] = left; rowBox[row][1] = right; n++;
+      e.style.transform = 'translate3d(' + Math.round(x) + 'px,' + Math.round(y + row * 21) + 'px,0) translate(-50%,0)';
+    }
+  }
+  for (let i = n; i < capPool.length; i++) { const e = capPool[i]; if (e._on !== false) { e.style.display = 'none'; e._on = false; } }
+}
+
+/* ------------------------------------------------------------------ section cut: a slab between two planes on one of the three body planes.
+   The slab is drawn solid with flat cut faces; everything outside it is a faint ghost. The slider range follows the region.
+   Nothing here moves the camera except the "Look at cut" button. */
+const secRows = $('#secRows'), btnSection = $('#btnSection'), secLevel = $('#secLevel'), thickLbl = $('#thickLbl'), segEl = $('.seg');
+const kf = { sil: $('#kfSil'), range: $('#kfRange'), slab: $('#kfSlab') };
+const secRange = { lo: 0, hi: 1 };
+const secAxis = () => SEC_AXES[S.section.plane];
+const axisCoord = (v, ax) => v.x * ax.x + v.y * ax.y + v.z * ax.z;
+function sectionRange() {
+  const box = regionBox(S.region), ax = secAxis();
+  const lo = axisCoord(box.min, ax), hi = axisCoord(box.max, ax);   // the body planes are axis-aligned, so the box edges are the range
+  const pad = Math.max(.01, (hi - lo) * .02);
+  secRange.lo = lo - pad; secRange.hi = hi + pad;
+}
+const secLevelValue = () => secRange.lo + (secRange.hi - secRange.lo) * S.section.frac;
+const secHalf = () => S.section.thick / 2;
+function inSlab(v) {   // world point inside the slab? (true when the cut is off)
+  if (!S.section.on) return true;
+  const d = axisCoord(v, secAxis()), L = secLevelValue(), h = secHalf();
+  return d >= L - h && d <= L + h;
+}
+// Does part p (at explode offset `off`, world) cross the slab? If so, pull `anchor` (a world point on the part) into the slab.
+function slabFit(p, off, anchor) {
+  if (!S.section.on) return true;
+  const ax = secAxis(), L = secLevelValue(), h = secHalf(), o = axisCoord(off, ax);
+  const a = axisCoord(p.box0.min, ax) + o, b = axisCoord(p.box0.max, ax) + o;
+  if (b < L - h || a > L + h) return false;
+  if (anchor) { const c = axisCoord(anchor, ax), cc = clamp(c, L - h, L + h); if (cc !== c) anchor.addScaledVector(ax, cc - c); }
+  return true;
+}
+function applySection() {
+  const sec = S.section, ax = secAxis();
+  if (S.explode > 0 || S.explodeTarget > 0) layoutStack();   // re-checks the stack axis against the cut; the stack slides if it changes
+  sectionRange();
+  if (sec.on) {
+    const L = secLevelValue(), h = secHalf();
+    slabPlanes[0].normal.copy(ax); slabPlanes[0].constant = -(L - h);
+    slabPlanes[1].normal.copy(ax).negate(); slabPlanes[1].constant = L + h;
+    invPlanes[0].normal.copy(ax).negate(); invPlanes[0].constant = L - h;   // inside-out pair: the ghost lives outside the slab
+    invPlanes[1].normal.copy(ax); invPlanes[1].constant = -(L + h);
+    updateSectionSide();
+    uCutOn.value = 1;
+  } else {
+    slabPlanes[0].constant = 1e4; slabPlanes[1].constant = 1e4; uCutOn.value = 0;
+  }
+  updateKeyFigure(); syncSectionUI();
+  requestRender();
+}
+// Like a building section or a plan cut: everything between you and the cut is removed, at every view angle. Only what lies
+// beyond the slab stays, as a faint ghost. The camera position picks the side (looking down at an axial cut hides everything
+// above it). When the camera sits level with the slab, the view direction decides. Runs whenever the view changes (frame).
+const _vd = new THREE.Vector3();
+function updateSectionSide() {
+  const ax = secAxis(), L = secLevelValue(), h = secHalf();
+  uSecN.value.copy(ax); uSecL.value = L;
+  const d = axisCoord(camera.position, ax) - L;
+  if (Math.abs(d) > h) uNearSign.value = d > 0 ? 1 : -1;
+  else { _vd.subVectors(controls.target, camera.position); uNearSign.value = axisCoord(_vd, ax) <= 0 ? 1 : -1; }
+  uNearAlpha.value = 0;
+}
+// Key figure: a small silhouette (front view for axial + sagittal, side view for coronal) with the region's range tinted and
+// the slab drawn as a bright band, so you always see where the cut is.
+const KF = { top: 4, bot: 158, mid: 50, halfW: 37, halfD: 12.5 };
+function updateKeyFigure() {
+  const sec = S.section, ax = secAxis(), L = secLevelValue(), h = secHalf();
+  const side = sec.plane === 'coronal';
+  const want = side ? '#kfSide' : '#kfFront';
+  if (kf.sil.getAttribute('href') !== want) kf.sil.setAttribute('href', want);
+  const sizeY = Math.max(.01, bodyBox.max.y - bodyBox.min.y);
+  const halfW = Math.max(.01, Math.max(-bodyBox.min.x, bodyBox.max.x)), halfD = Math.max(.01, Math.max(-bodyBox.min.z, bodyBox.max.z));
+  const fy = Y => KF.top + (bodyBox.max.y - Y) / sizeY * (KF.bot - KF.top);
+  const fx = X => KF.mid + X / halfW * KF.halfW;          // front view: the person's left (+X) is on the viewer's right
+  const fz = Z => KF.mid + Z / halfD * KF.halfD;          // side view from the person's left: the front (+Z) is on the right
+  const setRect = (r, x, y, w, hh) => { r.setAttribute('x', x.toFixed(1)); r.setAttribute('y', y.toFixed(1)); r.setAttribute('width', w.toFixed(1)); r.setAttribute('height', hh.toFixed(1)); };
+  if (sec.plane === 'axial') {
+    const y0 = fy(L + h), y1 = fy(L - h), hh = Math.max(2.2, y1 - y0), yc = (y0 + y1) / 2;
+    setRect(kf.slab, -4, yc - hh / 2, 108, hh);
+    setRect(kf.range, -4, fy(secRange.hi), 108, Math.max(0, fy(secRange.lo) - fy(secRange.hi)));
+  } else {
+    const f = side ? fz : fx;
+    const x0 = f(L - h), x1 = f(L + h), w = Math.max(2.2, x1 - x0), xc = (x0 + x1) / 2;
+    setRect(kf.slab, xc - w / 2, 0, w, 180);
+    setRect(kf.range, f(secRange.lo), 0, Math.max(0, f(secRange.hi) - f(secRange.lo)), 180);
+  }
+}
+function syncSectionUI() {
+  const sec = S.section;
+  btnSection.setAttribute('aria-pressed', String(sec.on)); btnSection.setAttribute('aria-expanded', String(sec.on));
+  secRows.hidden = !sec.on;
+  for (const b of $$('button', segEl)) b.setAttribute('aria-checked', String(b.dataset.plane === sec.plane));
+  const v = Math.round(sec.frac * 1000);
+  if (!secDragging) secLevel.value = v;
+  secLevel.style.setProperty('--p', (secDragging ? secLevel.value / 10 : sec.frac * 100).toFixed(1) + '%');
+  thickLbl.textContent = sec.thick < .01 ? Math.round(sec.thick * 1000) + ' mm' : (Math.round(sec.thick * 100 * 10) / 10) + ' cm';
+  const ti = THICK_STEPS.indexOf(sec.thick);
+  $('#thickMinus').disabled = ti <= 0; $('#thickPlus').disabled = ti >= THICK_STEPS.length - 1;
+}
+let secDragging = false;
+function setSection(on) {
+  S.section.on = on;
+  applySection(); syncRender(); requestRender();
+}
+btnSection.addEventListener('click', () => setSection(!S.section.on));
+for (const b of $$('button', segEl)) b.addEventListener('click', () => { S.section.plane = b.dataset.plane; applySection(); });
+secLevel.addEventListener('input', () => { secDragging = true; S.section.frac = secLevel.value / 1000; applySection(); });
+const endSecDrag = () => { secDragging = false; syncSectionUI(); };
+secLevel.addEventListener('change', endSecDrag); secLevel.addEventListener('pointerup', endSecDrag); secLevel.addEventListener('touchend', endSecDrag);
+function stepThick(d) {
+  const i = clamp(THICK_STEPS.indexOf(S.section.thick) + d, 0, THICK_STEPS.length - 1);
+  S.section.thick = THICK_STEPS[i]; applySection();
+}
+$('#thickMinus').addEventListener('click', () => stepThick(-1));
+$('#thickPlus').addEventListener('click', () => stepThick(1));
+// The one camera move this tool makes, and only on request: look straight at the slab from the side you are on, framed to
+// the parts that cross it.
+function lookAtCut() {
+  if (!S.section.on) return;
+  const ax = secAxis(), L = secLevelValue(), h = secHalf();
+  const camOff = camera.position.clone().sub(controls.target);
+  const side = axisCoord(camOff, ax) >= 0 ? 1 : -1;
+  const dir = ax.clone().multiplyScalar(side);
+  if (S.section.plane === 'axial') {   // a touch off the orbit pole so the view keeps its bearings
+    const hz = new THREE.Vector3(camOff.x, 0, camOff.z); if (hz.lengthSq() < 1e-6) hz.set(0, 0, 1);
+    dir.addScaledVector(hz.normalize(), .07).normalize();
+  }
+  const t = S.explodeTarget, inCut = [];
+  for (const p of parts) { if (!p.vis) continue; partOffset(p, t, _o, stackTgt); if (slabFit(p, _o, null)) inCut.push(p); }
+  const reg = S.region === 'all' ? parts : parts.filter(p => p.region === S.region);
+  const box = boxOfParts(inCut.length ? inCut : reg.filter(p => p.vis));
+  if (inCut.length) {   // clamp the box to the slab along the plane normal
+    const lo = L - h, hi = L + h;
+    if (ax.x) { box.min.x = Math.max(box.min.x, lo); box.max.x = Math.min(box.max.x, hi); }
+    if (ax.y) { box.min.y = Math.max(box.min.y, lo); box.max.y = Math.min(box.max.y, hi); }
+    if (ax.z) { box.min.z = Math.max(box.min.z, lo); box.max.z = Math.min(box.max.z, hi); }
+  }
+  moveCamera(fitBox(box, dir, bottomOccupied(), .12));
+}
+$('#btnLookCut').addEventListener('click', lookAtCut);
 
 /* ------------------------------------------------------------------ toggles */
 function setLabels(on) {
@@ -1068,7 +1508,7 @@ dockToggle.addEventListener('click', () => { setDockCollapsed(!dock.classList.co
 if ('ResizeObserver' in window) {
   new ResizeObserver(() => {
     if (!dock.classList.contains('collapsed') && dock.offsetHeight > 40) {
-      if (Math.abs(dock.offsetHeight - dockExpandedH) > 3) { dockExpandedH = dock.offsetHeight; computeShift(); requestRender(); }
+      if (Math.abs(dock.offsetHeight - dockExpandedH) > 3) { dockExpandedH = dock.offsetHeight; computeShift(true); requestRender(); }
     }
   }).observe(dock);
 }
@@ -1076,7 +1516,7 @@ if ('ResizeObserver' in window) {
 /* ------------------------------------------------------------------ labels: per-region declutter, capped */
 const labelsEl = $('#labels'), labelPool = [];
 const lctx = document.createElement('canvas').getContext('2d');
-const _p = new THREE.Vector3();
+const _p = new THREE.Vector3(), _o2 = new THREE.Vector3();
 let labelBuckets = null, labelFontPx = 0;
 const LAYER_DEPTH = { muscle_superficial: 0, muscle_mid: 1, muscle_deep: 2, vein: 2, artery: 2, nerve: 2, organ: 3, ligament: 3, bone: 4, cns: 5 };
 const depthOf = p => LAYER_DEPTH[p.layer] != null ? LAYER_DEPTH[p.layer] : 3;
@@ -1115,7 +1555,8 @@ function updateLabels() {
   const tryPlace = (p, force) => {
     if (!force && p.c._lbl === labelEpoch) return false;   // one label per structure (left and right share a card)
     partOffset(p, S.explode, _o);
-    _o.add(p.c0);
+    if (S.section.on) { _o2.copy(_o).add(p.c0); if (!slabFit(p, _o, _o2)) return false; _o.copy(_o2); }   // only parts that cross the slab, anchored inside it
+    else _o.add(p.c0);
     if (!force && p.dir && depthOf(p) <= 1) {   // skip superficial parts on the far side of the body
       const dx = _cam.x - _o.x, dy = _cam.y - _o.y, dz = _cam.z - _o.z;
       if ((p.dir[0] * dx + p.dir[1] * dy + p.dir[2] * dz) < 0) return false;
@@ -1186,7 +1627,8 @@ function pickables() {
 function rayPart(x, y, list) {
   _ndc.set(x / W * 2 - 1, -(y / H) * 2 + 1);
   raycaster.setFromCamera(_ndc, camera);
-  const hits = raycaster.intersectObjects(list, false);
+  let hits = raycaster.intersectObjects(list, false);
+  if (S.section.on) hits = hits.filter(h => inSlab(h.point));   // the cut-away sides are a ghost: tapping them picks nothing
   if (!hits.length) return null;
   for (const h of hits) { const p = h.object.userData.part; if (p.st !== 'ghost') return p; }  // a solid (selected) part beats ghosts in front of it
   return hits[0].object.userData.part;
@@ -1489,7 +1931,7 @@ function renderInfo() {
   cr.append(document.createTextNode((DATA && DATA.credit) || 'Credits unavailable.')); b.append(cr);
   b.append(el('div', 'warn', 'For study only. Not for clinical use.'));
   const meta = el('p', 'small'); meta.style.marginTop = '14px';
-  meta.textContent = 'Tap a structure to isolate it; tap empty space to restore. Drag to rotate, pinch to zoom, two fingers to pan. Add to Home Screen for the full-screen app.';
+  meta.textContent = 'Tap a structure to isolate it; tap empty space to restore. Drag to rotate, pinch to zoom, two fingers to pan. Explode lifts the organs and muscle layers off the skeleton, one slot each. Section cuts a slab through the body on one of the three body planes. Add to Home Screen for the full-screen app.';
   b.append(meta);
 }
 $('#btnInfo').addEventListener('click', () => { renderInfo(); openModal('#mInfo'); });
@@ -1513,15 +1955,18 @@ addEventListener('load', reg);
     const gltfs = await loadAll();
     const n = buildParts(gltfs);
     buildMerged();
+    setProgress(1, 'Preparing the shaders', '100%');
+    await new Promise(r => setTimeout(r, 20));
+    precompile();
     peelOrder = PEEL_ORDER.filter(l => (DATA.layers || []).some(x => x.id === l));
     for (const l of DATA.layers || []) S.layers[l.id] = true;
-    buildRegions(); buildChips(); applyVisibility(); applyAppearance(); updatePeel(); syncExplodeUI(); applyTheme();
+    buildRegions(); buildChips(); applyVisibility(); applyAppearance(); updatePeel(); syncExplodeUI(); applySection(); applyTheme();
     dockExpandedH = dock.offsetHeight || dockExpandedH;
     computeShift();
     // initial framing: whole body, front view, inside the free area
     const g = fitBox(boxOfParts(parts, 0), new THREE.Vector3(0, .05, 1), bottomOccupied());
     camera.position.copy(g.target).addScaledVector(g.dir, g.dist); controls.target.copy(g.target); camera.lookAt(g.target);
-    controls.maxDistance = g.dist * 2.6; controls.update();
+    controls.maxDistance = Math.max(g.dist * 2.6, 24); controls.update();   // 24 m: room to frame the whole explode stack
     camera.updateMatrixWorld();
     renderer.render(scene, camera);
     setProgress(1, 'Ready');
@@ -1530,6 +1975,9 @@ addEventListener('load', reg);
     window.__loadMs = performance.now() - t0;
     window.__app = {
       S, parts, cardIdx, selectCard, clearSelection, setSheet, setRegion, camera, controls, scene, renderer, pickAt, pickables, resetView, frameRegion, setLabels,
+      setExplodeTarget, layoutStack, setSection, applySection, lookAtCut, slabPlanes, buckets, requestRender,
+      get stack() { return { axis: S.stackAxis.toArray(), step: stackStep, ranks: stackRanks.slice(), cur: Array.from(stackCur), tgt: Array.from(stackTgt) }; },
+      get secRange() { return { lo: secRange.lo, hi: secRange.hi, level: secLevelValue() }; },
       get lastPick() { return lastPick; }, get tweening() { return tweens.length > 0 || !!cameraTween; }, get sheetState() { return sheetState; }, count: n, THREE, searchCards,
     };
     setTimeout(() => { loadingEl.classList.add('done'); setTimeout(() => { loadingEl.style.display = 'none'; }, 550); }, 150);

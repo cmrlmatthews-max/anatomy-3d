@@ -2,6 +2,13 @@
 
 An interactive 3D model of the full human body for iPhone. It shows 2,387 parts in 1,370 structures: bones, joints and ligaments, muscles with tendons, nerves, brain and spinal cord, arteries, veins, the heart, and organs. Each structure has a study card.
 
+## Tools
+
+- **Tap** a structure to isolate it. Tap empty space to restore the body.
+- **Layers** and **Peel** hide systems from the outside in.
+- **Explode** is a layer stack, like an exploded axonometric. The skeleton, joints, nerves, vessels, brain and spinal cord stay in place. Organs, deep muscle, middle muscle and superficial muscle lift off sideways, one slot each. At 100% no two layers overlap. Hidden or empty layers take no slot. A small caption names each slot. Reset frames the whole stack.
+- **Section** cuts a slab through the body on one of the three body planes (axial, coronal, sagittal). The cut faces show solid. Everything between you and the cut is removed, like a plan cut: look down at a neck-level cut and the head is gone. Whatever lies beyond the slab stays as a faint ghost. The key figure shows where the cut is. The slider range follows the region picker. "Look at cut" is the only camera move this tool makes.
+
 ## Files
 
 | File | Purpose |
