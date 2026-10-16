@@ -1943,7 +1943,17 @@ function reg() {
   if (swRegistered || !bootDone || document.readyState !== 'complete') return;
   if (!('serviceWorker' in navigator && /^https?:$/.test(location.protocol))) return;
   swRegistered = true;
-  navigator.serviceWorker.register('./sw.js').catch(() => {});
+  // An app already run under an older cache reloads once when the new version takes over, so an update shows right away.
+  const hadController = !!navigator.serviceWorker.controller;
+  let reloading = false;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (!hadController || reloading) return;
+    reloading = true; location.reload();
+  });
+  navigator.serviceWorker.register('./sw.js', { updateViaCache: 'none' }).then(r => {
+    // Home Screen apps stay open in the background for days: check for an update each time the app comes back.
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) r.update().catch(() => {}); });
+  }).catch(() => {});
 }
 addEventListener('load', reg);
 (async function boot() {

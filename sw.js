@@ -1,7 +1,7 @@
 /* Anatomy 3D service worker (full body).
    Bump VERSION whenever the app shell changes. Models are cache-first and keyed by their full URL
    (including any ?v=… in data/parts.json files[].url), so change that query (or bump VERSION) when a GLB changes. */
-const VERSION = 'v7';
+const VERSION = 'v8';
 const PREFIX = 'anatomy3d-';
 const CACHE = PREFIX + VERSION;
 
@@ -38,7 +38,15 @@ self.addEventListener('install', (event) => {
       const res = (await cache.match('./data/parts.json')) || (await fetch(fresh('./data/parts.json')));
       const data = await res.clone().json();
       // Model URLs are versioned (?v=…), so they may come from the HTTP cache the page just filled (no second download).
-      await Promise.all((data.files || []).map((f) => cache.add(f.url).catch(() => {})));
+      // Reuse a model from an older app cache when it is the same URL, so an update installs in seconds instead of
+      // downloading 6.8 MB again (an install cut short by closing the app would otherwise never finish).
+      await Promise.all((data.files || []).map(async (f) => {
+        try {
+          const old = await caches.match(f.url);
+          if (old && old.ok) { await cache.put(f.url, old); return; }
+        } catch (e) { /* fall through to download */ }
+        await cache.add(f.url).catch(() => {});
+      }));
     } catch (e) { /* models are cached on first use instead */ }
     // Fonts: stylesheet + the latin subset files it references.
     try {
@@ -74,15 +82,20 @@ async function cacheFirst(request, ignoreSearch) {
   return res;
 }
 
-async function staleWhileRevalidate(request, event) {
+// Network first (with a short timeout), cache as the offline fallback. Used for the page and its data, so an online launch
+// always shows the newest version and the page never mixes with an older data file.
+async function networkFirst(request, event, timeoutMs = 4000) {
   const cache = await caches.open(CACHE);
+  const network = fetch(request, { cache: 'no-cache' })
+    .then((res) => { if (cacheable(res)) cache.put(request, res.clone()).catch(() => {}); return res; });
+  const timeout = new Promise((resolve) => setTimeout(() => resolve(null), timeoutMs));
+  try {
+    const res = await Promise.race([network, timeout]);
+    if (res && res.ok) return res;
+  } catch (e) { /* offline */ }
   const hit = await cache.match(request, { ignoreSearch: true });
-  const network = fetch(request)
-    .then((res) => { if (cacheable(res)) cache.put(request, res.clone()).catch(() => {}); return res; })
-    .catch(() => null);
-  if (hit) { event.waitUntil(network); return hit; }
-  const res = await network;
-  return res || new Response('Offline', { status: 503, statusText: 'Offline' });
+  if (hit) { event.waitUntil(network.catch(() => {})); return hit; }
+  try { return await network; } catch (e) { return new Response('Offline', { status: 503, statusText: 'Offline' }); }
 }
 
 self.addEventListener('fetch', (event) => {
@@ -102,9 +115,9 @@ self.addEventListener('fetch', (event) => {
   const isPage = req.mode === 'navigate' || path.endsWith('/') || path.endsWith('/index.html');
   if (isPage) {
     const shellReq = new Request(new URL('./index.html', self.registration.scope).href);
-    event.respondWith(staleWhileRevalidate(shellReq, event));
+    event.respondWith(networkFirst(shellReq, event));
     return;
   }
-  if (/\/data\/[^/]+\.json$/.test(path)) { event.respondWith(staleWhileRevalidate(req, event)); return; }
+  if (/\/data\/[^/]+\.json$/.test(path)) { event.respondWith(networkFirst(req, event)); return; }
   event.respondWith(cacheFirst(req, true).catch(() => new Response('Offline', { status: 503, statusText: 'Offline' })));
 });
