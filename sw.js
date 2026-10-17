@@ -1,7 +1,7 @@
 /* Anatomy 3D service worker (full body).
    Bump VERSION whenever the app shell changes. Models are cache-first and keyed by their full URL
    (including any ?v=… in data/parts.json files[].url), so change that query (or bump VERSION) when a GLB changes. */
-const VERSION = 'v8';
+const VERSION = 'v9';
 const PREFIX = 'anatomy3d-';
 const CACHE = PREFIX + VERSION;
 
