@@ -51,7 +51,6 @@
   --track: rgba(255,255,255,.18);
   --shadow: 0 10px 34px rgba(0,0,0,.45);
   --peek-h: calc(3.9rem + var(--safe-b));
-  --dock-bottom: max(8px, var(--safe-b));
 }
 @media (prefers-color-scheme: light){
   :root:not([data-theme="dark"]){
@@ -89,13 +88,6 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline
 svg.i{width:1.2rem;height:1.2rem;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;flex:none}
 
 canvas#c{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none;outline:none}
-#labels{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:2}
-.lbl{position:absolute;left:0;top:0;max-width:15em;padding:.2em .6em;border-radius:.7em;font-size:var(--fs-2xs);font-weight:650;line-height:1.25;letter-spacing:.005em;
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--text);background:var(--lbl-bg);
-  border:1px solid var(--glass-border);box-shadow:0 1px 4px rgba(0,0,0,.25);will-change:transform}
-.lbl.sel{background:var(--accent);color:#fff;border-color:transparent;z-index:1}
-.lbl i{display:inline-block;width:.5em;height:.5em;border-radius:50%;margin-right:.45em;vertical-align:.05em}
-
 .scrim-top{position:fixed;left:0;right:0;top:0;height:calc(var(--safe-t) + 4px);pointer-events:none;z-index:3;
   background:linear-gradient(rgba(10,12,18,.5),rgba(10,12,18,0));display:none}
 @media (prefers-color-scheme: light){ .scrim-top{display:block} }
@@ -114,7 +106,7 @@ canvas#c{position:fixed;inset:0;width:100%;height:100%;display:block;touch-actio
 .search input::placeholder{color:var(--text3)}
 .search input::-webkit-search-cancel-button{-webkit-appearance:none;display:none}
 .round{width:max(48px,calc(var(--ctl) + .4rem));height:max(48px,calc(var(--ctl) + .4rem));border-radius:50%;display:grid;place-items:center;flex:none}
-.round:active,.btn:active,.chip:active,.rail-btn:active,.rg:active{transform:scale(.95)}
+.round:active,.btn:active,.rail-btn:active,.rg:active{transform:scale(.95)}
 .clear{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;color:var(--text2)}
 
 /* region picker */
@@ -141,30 +133,66 @@ canvas#c{position:fixed;inset:0;width:100%;height:100%;display:block;touch-actio
 #rail{position:fixed;z-index:8;right:calc(10px + var(--safe-r));top:calc(var(--safe-t) + max(48px,calc(var(--ctl) + .4rem)) + var(--ctl) + 34px);display:flex;flex-direction:column;gap:8px}
 .rail-btn{width:3.3rem;height:3.3rem;border-radius:18px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:var(--fs-2xs);font-weight:650;color:var(--text)}
 
-/* ---------- dock ---------- */
-#dock{position:fixed;z-index:9;left:calc(8px + var(--safe-l));right:calc(8px + var(--safe-r));bottom:var(--dock-bottom);
-  max-width:760px;margin:0 auto;border-radius:26px;padding:2px 10px 10px;max-height:52dvh;overflow-y:auto;overflow-x:hidden;
-  transition:bottom .35s cubic-bezier(.2,.8,.2,1),opacity .2s,transform .3s}
-#dock.away{opacity:0;pointer-events:none;transform:translateY(24px)}
-#dockToggle{display:flex;align-items:center;justify-content:center;width:100%;height:26px;color:var(--text3)}
-#dockToggle svg{transition:transform .25s}
-#dock.collapsed #dockToggle svg{transform:rotate(180deg)}
-#dock.collapsed{padding-bottom:0;overflow:hidden}
-#dock.collapsed .rows{display:none}
-.rows{display:flex;flex-direction:column;gap:7px}
-.row{display:flex;align-items:center;gap:8px}
-/* compact chips that wrap, so every layer chip is visible at once (no sideways scroll) */
-.chips{display:flex;flex-wrap:wrap;gap:5px 6px;align-items:center;padding-top:2px}
-.chips .chip{height:max(30px,calc(var(--ctl) - .75rem));min-height:30px;padding:0 .7em;gap:.4em;font-size:var(--fs-xs)}
-.chips .chip .dot{width:.62em;height:.62em}
-.chip.act{background:var(--fill);color:var(--text);font-weight:700;letter-spacing:.01em}
-.chip.act svg{width:1rem;height:1rem}
-.chip,.btn{height:var(--ctl);min-height:40px;border-radius:999px;padding:0 .95em;display:inline-flex;align-items:center;gap:.5em;flex:none;
+/* ---------- side menu (left): fixed panel on wide screens, slide-in drawer on iPhone ---------- */
+:root{--menu-w:min(300px,84vw);--menu-top:120px}
+@media (min-width:760px){ :root{--menu-w:272px} }
+#menu{position:fixed;z-index:13;left:calc(10px + var(--safe-l));top:var(--menu-top);bottom:max(10px,var(--safe-b));width:var(--menu-w);
+  border-radius:22px;padding:4px 12px 16px;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;touch-action:pan-y;
+  display:flex;flex-direction:column;gap:6px;transition:transform .32s cubic-bezier(.2,.85,.25,1)}
+#menu h3{margin:0;font-size:var(--fs-xs);font-weight:700;letter-spacing:.11em;font-variant-caps:all-small-caps;text-transform:lowercase;color:var(--text3)}
+.mh{display:flex;align-items:center;gap:2px;min-height:44px}
+.mh h3{flex:1}
+.txt{height:32px;padding:0 .55em;border-radius:999px;font-size:var(--fs-xs);font-weight:650;color:var(--accent);flex:none}
+.txt:active{background:var(--fill)}
+#menu h3.sh{margin-top:12px}
+.sh-row{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:12px;min-height:28px}
+#menu .sh-row h3.sh{margin-top:0}
+.layer-list{display:flex;flex-direction:column;gap:1px}
+.li{display:flex;align-items:center;gap:.65em;width:100%;min-height:38px;padding:0 .6em;border-radius:12px;text-align:left;
+  font-size:var(--fs-sm);font-weight:600;color:var(--text);transition:background .15s,color .15s}
+.li:active{background:var(--fill)}
+.li .dot{width:.75em;height:.75em;border-radius:50%;flex:none;box-shadow:0 0 0 1px rgba(128,134,150,.55)}
+.li .nm{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.li .ck{width:1.05rem;height:1.05rem;color:var(--accent)}
+.li[aria-pressed="false"]{color:var(--text3)}
+.li[aria-pressed="false"] .dot{background:transparent !important;box-shadow:inset 0 0 0 1.5px var(--text3)}
+.li[aria-pressed="false"] .ck{visibility:hidden}
+#menu .row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+#menu input[type=range]{flex:1 1 0;min-width:90px}
+.btn.sm{height:36px;min-height:36px;padding:0 .8em;font-size:var(--fs-xs)}
+.switch{width:46px;height:28px;border-radius:999px;background:var(--fill-hi);position:relative;flex:none;transition:background .2s}
+.switch i{position:absolute;left:3px;top:3px;width:22px;height:22px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.3);transition:transform .2s}
+.switch[aria-pressed="true"]{background:var(--accent)}
+.switch[aria-pressed="true"] i{transform:translateX(18px)}
+#menuBtn{position:fixed;z-index:9;left:calc(10px + var(--safe-l));bottom:max(12px,calc(var(--safe-b) + 4px));height:48px;padding:0 16px;border-radius:999px;
+  display:flex;align-items:center;gap:8px;font-weight:650;font-size:var(--fs-sm);color:var(--text);transition:opacity .2s}
+#menuClose{display:none}
+@media (max-width:759.98px){
+  #menu{transform:translateX(calc(-100% - 24px));visibility:hidden;transition:transform .32s cubic-bezier(.2,.85,.25,1),visibility 0s .32s}
+  #menu.open{transform:none;visibility:visible;transition:transform .32s cubic-bezier(.2,.85,.25,1)}
+  #menuClose{display:grid}
+  body.menu-open #menuBtn{opacity:0;pointer-events:none}
+}
+@media (min-width:760px){ #menuBtn{display:none} }
+/* section rows inside the narrow menu: plane picker and "Look at cut" take full lines; the thickness stepper wraps under the slider */
+#secRows .seg,#secRows .btn.look{flex:1 1 100%}
+#secRows .btn.look{justify-content:center}
+
+/* ---------- selected structure: name banner under the region bar (tap to open the study card) ---------- */
+#selBar{position:fixed;z-index:10;top:var(--menu-top);left:calc(10px + var(--safe-l));right:calc(18px + 3.3rem + var(--safe-r));max-width:560px;margin:0 auto;
+  border-radius:20px;display:flex;align-items:center;gap:2px;padding:4px 4px 4px 16px}
+@media (min-width:760px){ #selBar{left:calc(20px + var(--menu-w) + var(--safe-l))} }
+#selOpen{flex:1;min-width:0;display:flex;align-items:center;gap:8px;text-align:left;min-height:52px;padding:4px 0}
+#selOpen .t{flex:1;min-width:0;display:flex;flex-direction:column}
+#selName{font-family:var(--serif);font-optical-sizing:auto;font-size:var(--fs-lg);font-weight:640;letter-spacing:-.012em;line-height:1.15;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+#selLatin{font-family:var(--serif);font-style:italic;font-weight:420;font-size:var(--fs-sm);color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#selLatin:empty{display:none}
+#selOpen .more{display:inline-flex;align-items:center;gap:1px;font-size:var(--fs-xs);font-weight:650;color:var(--accent);flex:none}
+#selOpen .more svg{width:1rem;height:1rem}
+@media (max-width:420px){ #selOpen .more{font-size:0;gap:0} }
+.btn{height:var(--ctl);min-height:40px;border-radius:999px;padding:0 .95em;display:inline-flex;align-items:center;gap:.5em;flex:none;
   background:var(--fill);font-weight:600;font-size:var(--fs-sm);white-space:nowrap;transition:background .15s,transform .12s,color .15s}
-.chip .dot{width:.72em;height:.72em;border-radius:50%;box-shadow:0 0 0 1px rgba(128,134,150,.55)}
-.chip[aria-pressed="false"]{color:var(--text3)}
-.chip[aria-pressed="false"] .dot{background:transparent !important;box-shadow:inset 0 0 0 1.5px var(--text3)}
-.chip[aria-pressed="true"]{background:var(--fill-hi)}
 .btn[aria-pressed="true"],.btn.primary{background:var(--accent);color:#fff}
 .stepper{display:inline-flex;align-items:center;height:var(--ctl);min-height:40px;border-radius:999px;background:var(--fill);flex:none}
 .stepper button{width:2.6rem;height:100%;display:grid;place-items:center;border-radius:999px}
@@ -172,7 +200,6 @@ canvas#c{position:fixed;inset:0;width:100%;height:100%;display:block;touch-actio
 .stepper .pl{display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:5.4rem;line-height:1.1}
 .stepper .pl b{font-size:var(--fs-sm);font-weight:650}
 .stepper .pl small{font-size:var(--fs-2xs);color:var(--text3);max-width:6.2rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.expl{min-width:7rem;justify-content:center}
 input[type=range]{-webkit-appearance:none;appearance:none;flex:1;min-width:0;height:44px;margin:0;background:transparent;touch-action:none;cursor:pointer}
 input[type=range]::-webkit-slider-runnable-track{height:6px;border-radius:3px;
   background:linear-gradient(var(--accent),var(--accent)) 0/var(--p,0%) 100% no-repeat, var(--track)}
@@ -182,12 +209,6 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:28px;heigh
   box-shadow:0 1px 3px rgba(0,0,0,.35),0 0 0 .5px rgba(0,0,0,.1)}
 input[type=range]::-moz-range-thumb{width:28px;height:28px;border:0;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.35)}
 .pct{width:2.9em;text-align:right;font-size:var(--fs-sm);color:var(--text2)}
-.sp{flex:1}
-/* square tool buttons (icon + tiny caption), same look as the rail */
-.tool{width:3.3rem;height:3.3rem;border-radius:18px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;flex:none;
-  font-size:var(--fs-2xs);font-weight:650;color:var(--text2);background:var(--fill);transition:background .15s,color .15s,transform .12s}
-.tool:active{transform:scale(.95)}
-.tool[aria-pressed="true"]{background:var(--accent);color:#fff}
 /* ---------- section cut panel ---------- */
 #secRows{display:flex;flex-direction:column;gap:7px}
 .seg{flex:1;min-width:0;display:flex;height:var(--ctl);min-height:40px;border-radius:999px;background:var(--fill);padding:3px;gap:2px}
@@ -200,16 +221,13 @@ input[type=range]::-moz-range-thumb{width:28px;height:28px;border:0;border-radiu
 .keyfig .slab{fill:currentColor;opacity:.95}
 .stepper.thick .pl{min-width:3.6rem}
 .stepper.thick button{width:2.3rem}
-/* explode layer captions (rendered into #labels) */
-.cap{position:absolute;left:0;top:0;padding:.22em .7em;border-radius:.7em;font-size:var(--fs-2xs);font-weight:700;letter-spacing:.07em;font-variant-caps:all-small-caps;text-transform:lowercase;
-  line-height:1.3;white-space:nowrap;color:var(--text2);background:var(--lbl-bg);border:1px solid var(--glass-border);box-shadow:0 1px 4px rgba(0,0,0,.25);will-change:transform;transform:translate(-50%,0)}
-
 /* ---------- bottom sheet ---------- */
 #sheet{position:fixed;z-index:12;left:0;right:0;bottom:0;max-width:680px;margin:0 auto;height:700px;transform:translateY(110%);
   border-radius:26px 26px 0 0;display:flex;flex-direction:column;overflow:hidden;
   transition:transform .38s cubic-bezier(.2,.85,.25,1);will-change:transform;pointer-events:none;
   background:var(--glass);border:.5px solid var(--glass-border);border-bottom:0;box-shadow:0 -8px 40px rgba(0,0,0,.28);
   -webkit-backdrop-filter:blur(28px) saturate(1.8);backdrop-filter:blur(28px) saturate(1.8)}
+@media (min-width:760px){ #sheet{left:calc(20px + var(--menu-w) + var(--safe-l));right:calc(10px + var(--safe-r))} }
 #sheet.open{pointer-events:auto}
 #sheet.dragging{transition:none}
 #sheetHead{flex:none;padding:6px max(12px, var(--safe-r)) 0 max(16px, var(--safe-l));touch-action:none;cursor:grab}
@@ -287,7 +305,6 @@ input[type=range]::-moz-range-thumb{width:28px;height:28px;border:0;border-radiu
 </head>
 <body>
 <canvas id="c" aria-label="3D model of the human body"></canvas>
-<div id="labels" aria-hidden="true"></div>
 <div class="scrim-top"></div>
 
 <header id="topbar">
@@ -306,27 +323,35 @@ input[type=range]::-moz-range-thumb{width:28px;height:28px;border:0;border-radiu
   <button id="btnReset" class="rail-btn glass" aria-label="Reset view"><svg class="i" viewBox="0 0 24 24"><path d="M4 9V5a1 1 0 0 1 1-1h4M15 4h4a1 1 0 0 1 1 1v4M20 15v4a1 1 0 0 1-1 1h-4M9 20H5a1 1 0 0 1-1-1v-4"/><circle cx="12" cy="12" r="2.5"/></svg>Reset</button>
 </nav>
 
-<section id="dock" class="glass" aria-label="Controls">
-  <button id="dockToggle" aria-label="Show or hide controls" aria-expanded="true"><svg class="i" viewBox="0 0 24 24"><path d="M6 10l6 6 6-6"/></svg></button>
-  <div class="rows">
-    <div class="row chips" id="chips" role="group" aria-label="Layers"></div>
-    <div class="row row-b">
-      <button id="btnExplode" class="btn expl"><svg class="i" viewBox="0 0 24 24"><path d="M12 3v5M9.5 5.5L12 3l2.5 2.5M12 21v-5M9.5 18.5L12 21l2.5-2.5M3 12h5M5.5 9.5L3 12l2.5 2.5M21 12h-5M18.5 9.5L21 12l-2.5 2.5"/></svg><span>Explode</span></button>
-      <input id="explode" type="range" min="0" max="100" value="0" step="1" aria-label="Explode amount">
-      <span class="pct" id="pct">0%</span>
+<button id="menuBtn" class="glass" aria-label="Open layers and tools" aria-controls="menu" aria-expanded="false"><svg class="i" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h10"/></svg><span>Layers &amp; tools</span></button>
+<aside id="menu" class="glass" aria-label="Layers and tools">
+  <div class="mh">
+    <h3>Layers</h3>
+    <button id="showAll" class="txt">Show all</button><button id="hideAll" class="txt">Hide all</button>
+    <button id="menuClose" class="nav" aria-label="Close layers and tools"><svg class="i" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+  </div>
+  <div id="chips" class="layer-list" role="group" aria-label="Layers"></div>
+
+  <h3 class="sh">Peel</h3>
+  <div class="row">
+    <div class="stepper" role="group" aria-label="Peel layers from outside in">
+      <button id="peelMinus" aria-label="Restore layer"><svg class="i" viewBox="0 0 24 24"><path d="M6 12h12"/></svg></button>
+      <div class="pl"><b id="peelLbl">Peel 0/0</b><small id="peelSub">Skin on</small></div>
+      <button id="peelPlus" aria-label="Peel next layer"><svg class="i" viewBox="0 0 24 24"><path d="M6 12h12M12 6v12"/></svg></button>
     </div>
-    <div class="row row-c">
-      <div class="stepper" role="group" aria-label="Peel layers from outside in">
-        <button id="peelMinus" aria-label="Restore layer"><svg class="i" viewBox="0 0 24 24"><path d="M6 12h12"/></svg></button>
-        <div class="pl"><b id="peelLbl">Peel 0/0</b><small id="peelSub">Skin on</small></div>
-        <button id="peelPlus" aria-label="Peel next layer"><svg class="i" viewBox="0 0 24 24"><path d="M6 12h12M12 6v12"/></svg></button>
-      </div>
-      <span class="sp"></span>
-      <button id="btnLabels" class="tool" aria-pressed="false" aria-label="Labels"><svg class="i" viewBox="0 0 24 24"><path d="M3.5 12V4.5h7.5l9.5 9.5-7.5 7.5z"/><circle cx="8" cy="9" r="1.2" fill="currentColor" stroke="none"/></svg>Labels</button>
-      <button id="btnSection" class="tool" aria-pressed="false" aria-label="Section cut" aria-expanded="false" aria-controls="secRows"><svg class="i" viewBox="0 0 24 24"><path d="M4 7.5l8-3.5 8 3.5-8 3.5z"/><path d="M4 7.5v9l8 3.5 8-3.5v-9"/><path d="M12 11v9"/><path d="M2.5 12.5h19" stroke-dasharray="2.2 2.2"/></svg>Section</button>
-    </div>
+  </div>
+
+  <div class="sh-row"><h3 class="sh">Explode</h3><span class="pct" id="pct">0%</span></div>
+  <div class="row">
+    <button id="btnExplode" class="btn sm"><svg class="i" viewBox="0 0 24 24"><path d="M12 3v5M9.5 5.5L12 3l2.5 2.5M12 21v-5M9.5 18.5L12 21l2.5-2.5M3 12h5M5.5 9.5L3 12l2.5 2.5M21 12h-5M18.5 9.5L21 12l-2.5 2.5"/></svg><span>Explode</span></button>
+    <input id="explode" type="range" min="0" max="100" value="0" step="1" aria-label="Explode amount">
+  </div>
+
+  <div class="sh-row"><h3 class="sh">Section cut</h3>
+    <button id="btnSection" class="switch" role="switch" aria-pressed="false" aria-checked="false" aria-label="Section cut" aria-expanded="false" aria-controls="secRows"><i></i></button>
+  </div>
     <div id="secRows" hidden>
-      <div class="row row-d">
+      <div class="row">
         <div class="seg" role="radiogroup" aria-label="Cut plane">
           <button data-plane="axial" role="radio" aria-checked="true">Axial</button>
           <button data-plane="coronal" role="radio" aria-checked="false">Coronal</button>
@@ -334,7 +359,7 @@ input[type=range]::-moz-range-thumb{width:28px;height:28px;border:0;border-radiu
         </div>
         <button id="btnLookCut" class="btn look"><svg class="i" viewBox="0 0 24 24"><path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6z"/><circle cx="12" cy="12" r="2.6"/></svg>Look at cut</button>
       </div>
-      <div class="row row-e">
+      <div class="row">
         <svg class="keyfig" viewBox="-4 0 108 180" aria-hidden="true">
           <defs>
             <path id="kfFront" d="M50 4a9.5 11 0 1 0 .01 0z M42 26c-9 2-17 4-20 10-3 6-3 18-5 34l-4 26M58 26c9 2 17 4 20 10 3 6 3 18 5 34l4 26M42 26c1 6 0 10-2 14 0 18 3 34 3 46-1 4-5 10-6 18l-4 54M58 26c-1 6 0 10 2 14 0 18-3 34-3 46 1 4 5 10 6 18l4 54M43 86c4 3 10 3 14 0"/>
@@ -352,8 +377,12 @@ input[type=range]::-moz-range-thumb{width:28px;height:28px;border:0;border-radiu
         </div>
       </div>
     </div>
-  </div>
-</section>
+</aside>
+
+<div id="selBar" class="glass" hidden>
+  <button id="selOpen" aria-label="Open study card"><span class="t"><b id="selName"></b><em id="selLatin"></em></span><span class="more">Details<svg class="i" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></span></button>
+  <button id="selClose" class="nav" aria-label="Clear selection"><svg class="i" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+</div>
 
 <section id="sheet" aria-label="Structure details" data-state="hidden" aria-hidden="true">
   <div id="sheetHead">
@@ -427,7 +456,6 @@ const LAYER_COLOR = { bone: '#efe3bf', ligament: '#e4dfd0', cns: '#e3b0b6', orga
 // Outer -> inner. The peel stepper hides these in order; chips follow the same order.
 const PEEL_ORDER = ['muscle_superficial', 'muscle_mid', 'muscle_deep', 'vein', 'artery', 'nerve', 'ligament', 'organ'];
 const CHIP_ORDER = ['muscle_superficial', 'muscle_mid', 'muscle_deep', 'tendon', 'vein', 'artery', 'nerve', 'organ', 'ligament', 'cns', 'bone'];
-const MAX_LABELS = 20;
 // Explode = layer stack (exploded axonometric). These layers lift off the skeleton, one slot each, deep -> superficial.
 // Everything else (bone, joints, nerves, vessels, brain + spinal cord) stays home.
 const STACK_MOVE = ['organ', 'muscle_deep', 'muscle_mid', 'muscle_superficial'];
@@ -454,7 +482,7 @@ const MUSCLE_VARIANT = { muscle_superficial: 'Muscle_sup', muscle_mid: 'Muscle_m
 
 /* ------------------------------------------------------------------ state */
 const S = {
-  layers: {}, tendons: true, region: 'all', labels: false, sel: null, explode: 0, explodeTarget: 0,
+  layers: {}, tendons: true, region: 'all', sel: null, explode: 0, explodeTarget: 0,
   stackAxis: new THREE.Vector3(1, 0, 0),           // fixed while exploded; chosen from the view when the explode starts
   section: { on: false, plane: 'axial', frac: .5, thick: .02 },   // frac = position inside the region's range along the plane normal
 };
@@ -541,7 +569,7 @@ controls.addEventListener('change', requestRender);
 controls.addEventListener('start', () => cancelCameraTween());
 
 let W = innerWidth, H = innerHeight;
-let viewShift = 0;     // constant projection offset (px) so the orbit centre sits in the free area between top bar and dock
+let viewShift = 0, viewShiftX = 0;   // constant projection offsets (px) so the orbit centre sits in the free area (below the top bar, right of the side menu)
 
 function applyTheme() {
   const d = isDark();
@@ -721,8 +749,8 @@ function applyExplode() {
   if (mergedReady) syncHomeGhost();
 }
 function applyViewOffset() {
-  if (Math.abs(viewShift) < 0.4) camera.clearViewOffset();
-  else camera.setViewOffset(W, H, 0, viewShift, W, H);
+  if (Math.abs(viewShift) < 0.4 && Math.abs(viewShiftX) < 0.4) camera.clearViewOffset();
+  else camera.setViewOffset(W, H, viewShiftX, viewShift, W, H);
 }
 // Offset of a part at explode amount t. `table` is stackCur (what is on screen) or stackTgt (where the layout is heading).
 function partOffset(p, t, out, table = stackCur) {
@@ -773,8 +801,6 @@ function frame(now) {
   camera.updateMatrixWorld();   // scene.matrixWorldAutoUpdate is off, so the camera (and the lights on it) is updated here
   if (S.section.on) updateSectionSide();
   renderer.render(scene, camera);
-  updateCaptions();
-  if (S.labels) updateLabels();
   if (busy) requestRender();
 }
 
@@ -782,7 +808,7 @@ function onResize() {
   W = innerWidth; H = innerHeight;
   renderer.setSize(W, H, false);
   camera.aspect = W / H; camera.updateProjectionMatrix();
-  measureUI(); layoutSheet(false); computeShift(); applyViewOffset(); requestRender();
+  measureUI(); layoutMenu(); layoutSheet(false); computeShift(); requestRender();
 }
 addEventListener('resize', onResize);
 addEventListener('orientationchange', () => setTimeout(onResize, 250));
@@ -814,25 +840,26 @@ function measureUI() {
 }
 
 /* ------------------------------------------------------------------ framing */
-const dock = $('#dock'), regionsEl = $('#regions'), railEl = $('#rail');
-let dockExpandedH = 190;
+const regionsEl = $('#regions'), railEl = $('#rail'), menuEl = $('#menu'), menuBtn = $('#menuBtn');
+const wideMQ = matchMedia('(min-width: 760px)');
+const isWide = () => wideMQ.matches;
 function topOccupied() { return Math.round(regionsEl.getBoundingClientRect().bottom) + 6; }
-function dockBase() { return Math.max(8, safeB); }
+// On wide screens the side menu is fixed, so the model is centred in the area to its right. On iPhone the menu is a drawer
+// that covers the model when open, so it takes no space; only the small menu button at the bottom does.
+function leftOccupied() { return isWide() ? Math.round(menuEl.getBoundingClientRect().right) + 8 : 0; }
+function bottomBase() { return isWide() ? Math.max(8, safeB) + 8 : Math.max(12, safeB + 4) + 56; }
 function bottomOccupied() {
   if (sheetState === 'half' || sheetState === 'full') return snapH(sheetState);
-  if (sheetState === 'peek') return peekH + 8 + dock.offsetHeight + 8;
-  return dockBase() + dock.offsetHeight + 8;
+  return bottomBase();
 }
-// The projection centre is fixed (never changes on select / collapse): the middle of the free area with the dock expanded.
-let shiftTween = null;
-function computeShift(animate = false) {
-  const bottomExpanded = dockBase() + dockExpandedH + 8;
-  const nv = (bottomExpanded - topOccupied()) / 2;
-  if (Math.abs(nv - viewShift) <= .5) return;
-  if (shiftTween) { shiftTween.dead = true; shiftTween = null; }
-  if (!animate) { viewShift = nv; applyViewOffset(); return; }
-  const from = viewShift;   // the dock grew or shrank (section panel): glide the picture to the new free area instead of jumping
-  shiftTween = tween(320, k => { viewShift = from + (nv - from) * k; applyViewOffset(); });
+// The projection centre is fixed (never changes on select): the middle of the free area with the study card closed.
+function computeShift() {
+  viewShift = (bottomBase() - topOccupied()) / 2;
+  viewShiftX = -leftOccupied() / 2;
+  applyViewOffset();
+}
+function layoutMenu() {
+  document.documentElement.style.setProperty('--menu-top', (Math.round(regionsEl.getBoundingClientRect().bottom) + 8) + 'px');
 }
 
 const _right = new THREE.Vector3(), _up = new THREE.Vector3(), _dirV = new THREE.Vector3(), _cc = new THREE.Vector3();
@@ -852,12 +879,14 @@ function fitBox(box, dir, bottomOcc, minDist = .12) {
     hz = Math.max(hz, Math.abs(x * _dirV.x + y * _dirV.y + z * _dirV.z));
   }
   const top = topOccupied(), area = Math.max(160, H - top - bottomOcc);
+  const left = leftOccupied(), areaW = Math.max(160, W - left - 10);
   const tanV = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
-  const zV = hy * H / (tanV * .94 * area), zH = hx * H / (tanV * .95 * (W - 20));
+  const zV = hy * H / (tanV * .94 * area), zH = hx * H / (tanV * .95 * (areaW - 20));
   const d = Math.max(zV + hz, zH + hz, minDist);
   const yStar = top + area / 2, yc = H / 2 - viewShift;
+  const xStar = left + areaW / 2, xc = W / 2 - viewShiftX;
   const wpp = 2 * d * tanV / H;
-  const target = _cc.clone().addScaledVector(_up, -(yc - yStar) * wpp);
+  const target = _cc.clone().addScaledVector(_up, -(yc - yStar) * wpp).addScaledVector(_right, (xc - xStar) * wpp);
   return { target, dist: d, dir: _dirV.clone() };
 }
 function moveCamera(g, dur = 650) {
@@ -1165,7 +1194,7 @@ function applyVisibility() {
     const on = !!S.layers[p.layer] && (S.region === 'all' || p.region === S.region);
     p.vis = on;
   }
-  pickList = null; labelBuckets = null;
+  pickList = null;
   if (S.sel && !S.sel.parts.some(p => p.vis)) clearSelection();
   layoutStack();
   syncRender();
@@ -1205,14 +1234,11 @@ function buildChips() {
   layerName.set('tendon', 'Tendons');
   const ids = CHIP_ORDER.filter(id => id === 'tendon' || have.has(id));
   for (const l of DATA.layers || []) if (!ids.includes(l.id)) ids.push(l.id);
-  for (const [lab, on] of [['Show all', true], ['Hide all', false]]) {
-    const b = el('button', 'chip act', lab); b.dataset.act = on ? 'all' : 'none';
-    b.addEventListener('click', () => { for (const l of DATA.layers || []) S.layers[l.id] = on; S.tendons = on; applyVisibility(); });
-    chipsEl.append(b);
-  }
   for (const id of ids) {
-    const b = el('button', 'chip'); b.dataset.layer = id; b.setAttribute('aria-pressed', 'true');
-    const d = el('span', 'dot'); d.style.background = LAYER_COLOR[id] || '#9aa'; b.append(d, document.createTextNode(layerName.get(id) || id));
+    const b = el('button', 'li'); b.dataset.layer = id; b.setAttribute('aria-pressed', 'true');
+    const d = el('span', 'dot'); d.style.background = LAYER_COLOR[id] || '#9aa';
+    b.append(d, el('span', 'nm', layerName.get(id) || id));
+    b.insertAdjacentHTML('beforeend', '<svg class="i ck" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>');
     b.addEventListener('click', () => {
       if (id === 'tendon') S.tendons = !S.tendons; else S.layers[id] = !S.layers[id];
       applyVisibility();
@@ -1220,8 +1246,10 @@ function buildChips() {
     chipsEl.append(b);
   }
 }
+for (const [id, on] of [['#showAll', true], ['#hideAll', false]])
+  $(id).addEventListener('click', () => { for (const l of DATA.layers || []) S.layers[l.id] = on; S.tendons = on; applyVisibility(); });
 function updateChips() {
-  for (const b of $$('.chip[data-layer]', chipsEl)) b.setAttribute('aria-pressed', String(b.dataset.layer === 'tendon' ? !!S.tendons : !!S.layers[b.dataset.layer]));
+  for (const b of $$('.li[data-layer]', chipsEl)) b.setAttribute('aria-pressed', String(b.dataset.layer === 'tendon' ? !!S.tendons : !!S.layers[b.dataset.layer]));
 }
 let peelOrder = [];
 function peelLevel() { let n = 0; for (const l of peelOrder) { if (!S.layers[l]) n++; else break; } return n; }
@@ -1308,67 +1336,6 @@ slider.addEventListener('input', () => { sliderDragging = true; setExplodeTarget
 const endDrag = () => { sliderDragging = false; syncExplodeUI(); };
 slider.addEventListener('change', endDrag); slider.addEventListener('pointerup', endDrag); slider.addEventListener('touchend', endDrag);
 btnExplode.addEventListener('click', () => { sliderDragging = false; setExplodeTarget(S.explodeTarget > .5 ? 0 : 1); });
-
-/* explode captions: one small label under each slot (rendered into #labels, placed every frame while exploded) */
-const capPool = [];
-const _cp = new THREE.Vector3(), _cb = new THREE.Vector3();
-function captionFor(rank) {
-  if (rank > 0) { const r = stackRanks.find(x => x.rank === rank); return r ? (layerName.get(r.layer) || r.layer) : ''; }
-  if (S.layers.bone) return (S.layers.artery || S.layers.vein || S.layers.nerve) ? 'Skeleton & vessels' : 'Skeleton';
-  if (S.layers.nerve || S.layers.cns) return 'Nerves';
-  if (S.layers.artery || S.layers.vein) return 'Vessels';
-  return 'In place';
-}
-const capRects = [];   // screen boxes of the captions shown this frame; structure labels avoid them
-const capCand = [];
-function updateCaptions() {
-  const show = S.explode > .05 && !S.sel && stackRanks.length;
-  let n = 0; capRects.length = 0; capCand.length = 0;
-  if (show) {
-    const box = regionBox(S.region); box.getCenter(_cb);
-    const topLim = topOccupied() + 2, botLim = H - bottomOccupied() + 4, pad = (box.max.y - box.min.y) * .035;
-    for (let rank = 0; rank <= stackRanks.length; rank++) {
-      // under the slot if there is room, else above it
-      let x = 0, y = 0, ok = false;
-      for (const yy of [box.min.y - pad, box.max.y + pad]) {
-        _cb.y = yy;
-        if (rank > 0) { const li = layerList.indexOf(stackRanks[rank - 1].layer) * 3; _cp.set(_cb.x + stackCur[li] * S.explode, _cb.y, _cb.z + stackCur[li + 2] * S.explode); }
-        else _cp.copy(_cb);
-        _cp.project(camera);
-        if (_cp.z > 1 || _cp.z < -1) continue;
-        x = (_cp.x * .5 + .5) * W; y = (-_cp.y * .5 + .5) * H + (yy < box.min.y ? 6 : -24);
-        if (x >= 10 && x <= W - 10 && y >= topLim && y <= botLim - 28) { ok = true; break; }
-      }
-      if (ok) capCand.push({ rank, x, y });
-    }
-    // Place left to right and test each caption against EVERY caption already placed (and the Reset rail).
-    // A caption tries its own spot, then one step below, one above, two below; if all are taken it is skipped.
-    capCand.sort((a, b) => a.x - b.x);
-    const rr = railEl.getBoundingClientRect();
-    for (const c of capCand) {
-      while (capPool.length <= n) { const e = el('div', 'cap'); labelsEl.append(e); capPool.push(e); }
-      const e = capPool[n]; const txt = captionFor(c.rank);
-      if (e._txt !== txt) { e._txt = txt; e.textContent = txt; e._w = 0; }
-      if (e._on !== true) { e.style.display = ''; e._on = true; }
-      if (!e._w) { e._w = e.offsetWidth || 80; e._h = e.offsetHeight || 20; }
-      const w = e._w, h = e._h, step = h + 4;
-      const x0 = clamp(c.x - w / 2, 6, W - 6 - w);
-      let y0 = null;
-      for (const dy of [0, step, -step, 2 * step]) {
-        const t = c.y + dy;
-        if (t < topLim || t + h > botLim) continue;
-        if (x0 < rr.right + 4 && x0 + w > rr.left - 4 && t < rr.bottom + 4 && t + h > rr.top - 4) continue;
-        let free = true;
-        for (const q of capRects) if (x0 < q.x1 + 6 && x0 + w > q.x0 - 6 && t < q.y1 + 3 && t + h > q.y0 - 3) { free = false; break; }
-        if (free) { y0 = t; break; }
-      }
-      if (y0 === null) continue;   // e stays in the pool and is reused (or hidden) below
-      capRects.push({ x0, x1: x0 + w, y0, y1: y0 + h }); n++;
-      e.style.transform = 'translate3d(' + Math.round(x0) + 'px,' + Math.round(y0) + 'px,0)';
-    }
-  }
-  for (let i = n; i < capPool.length; i++) { const e = capPool[i]; if (e._on !== false) { e.style.display = 'none'; e._on = false; } }
-}
 
 /* ------------------------------------------------------------------ section cut: a slab between two planes on one of the three body planes.
    The slab is drawn solid with flat cut faces; everything outside it is a faint ghost. The slider range follows the region.
@@ -1457,7 +1424,7 @@ function updateKeyFigure() {
 }
 function syncSectionUI() {
   const sec = S.section;
-  btnSection.setAttribute('aria-pressed', String(sec.on)); btnSection.setAttribute('aria-expanded', String(sec.on));
+  btnSection.setAttribute('aria-pressed', String(sec.on)); btnSection.setAttribute('aria-checked', String(sec.on)); btnSection.setAttribute('aria-expanded', String(sec.on));
   secRows.hidden = !sec.on;
   for (const b of $$('button', segEl)) b.setAttribute('aria-checked', String(b.dataset.plane === sec.plane));
   const v = Math.round(sec.frac * 1000);
@@ -1510,124 +1477,14 @@ function lookAtCut() {
 $('#btnLookCut').addEventListener('click', lookAtCut);
 
 /* ------------------------------------------------------------------ toggles */
-function setLabels(on) {
-  S.labels = on; $('#btnLabels').setAttribute('aria-pressed', String(on));
-  if (!on) for (const e of labelPool) e.style.display = 'none';
-  requestRender();
+/* side menu drawer (iPhone only; on wide screens the menu is always open) */
+function setMenuOpen(open) {
+  menuEl.classList.toggle('open', open); document.body.classList.toggle('menu-open', open);
+  menuBtn.setAttribute('aria-expanded', String(open));
 }
-$('#btnLabels').addEventListener('click', () => setLabels(!S.labels));
-const dockToggle = $('#dockToggle');
-function setDockCollapsed(c) {
-  dock.classList.toggle('collapsed', c); dockToggle.setAttribute('aria-expanded', String(!c));
-}
-dockToggle.addEventListener('click', () => { setDockCollapsed(!dock.classList.contains('collapsed')); requestRender(); });
-if ('ResizeObserver' in window) {
-  new ResizeObserver(() => {
-    if (!dock.classList.contains('collapsed') && dock.offsetHeight > 40) {
-      if (Math.abs(dock.offsetHeight - dockExpandedH) > 3) { dockExpandedH = dock.offsetHeight; computeShift(true); requestRender(); }
-    }
-  }).observe(dock);
-}
-
-/* ------------------------------------------------------------------ labels: per-region declutter, capped */
-const labelsEl = $('#labels'), labelPool = [];
-const lctx = document.createElement('canvas').getContext('2d');
-const _p = new THREE.Vector3(), _o2 = new THREE.Vector3();
-let labelBuckets = null, labelFontPx = 0;
-const LAYER_DEPTH = { muscle_superficial: 0, muscle_mid: 1, muscle_deep: 2, vein: 2, artery: 2, nerve: 2, organ: 3, ligament: 3, bone: 4, cns: 5 };
-const depthOf = p => LAYER_DEPTH[p.layer] != null ? LAYER_DEPTH[p.layer] : 3;
-function labelWidth(p) {
-  if (p._lw) return p._lw;
-  const px = parseFloat(getComputedStyle(document.documentElement).fontSize) * .72 || 12;
-  if (px !== labelFontPx) { labelFontPx = px; lctx.font = '650 ' + px + 'px -apple-system, system-ui, sans-serif'; }
-  p._lw = Math.min(px * 15 + 2, Math.ceil(lctx.measureText(p.title).width) + px * 2.1); return p._lw;
-}
-// Rebuilt whenever visibility changes: only parts you can currently see, only the outer visible layers (so a label never
-// names something buried under a layer that is still on), one list per region so labels spread across the body.
-function buildLabelBuckets() {
-  let minD = 99; for (const p of parts) if (p.vis) minD = Math.min(minD, depthOf(p));
-  const by = new Map();
-  for (const p of parts) {
-    if (!p.vis || depthOf(p) > minD + 1) continue;
-    if (!by.has(p.region)) by.set(p.region, []); by.get(p.region).push(p);
-  }
-  labelBuckets = [...by.values()].map(a => a.sort((x, y) => (y.radius * (1 + y.tier * .35)) - (x.radius * (1 + x.tier * .35))));
-  labelIdx = new Int32Array(labelBuckets.length);
-}
-let labelIdx = new Int32Array(8);
-const rectPool = []; for (let i = 0; i < MAX_LABELS + 4; i++) rectPool.push({ x0: 0, x1: 0, y0: 0, y1: 0, p: null, sel: false });
-const placed = [], obstacles = [{ x0: 0, x1: 0, y0: 0, y1: 0 }];
-const _cam = new THREE.Vector3();
-let labelEpoch = 0;
-function updateLabels() {
-  if (!labelBuckets) buildLabelBuckets();
-  const topLim = topOccupied() + 2, botLim = H - bottomOccupied() + 4;
-  const rr = railEl.getBoundingClientRect();
-  const ob = obstacles[0]; ob.x0 = rr.left - 4; ob.x1 = rr.right + 4; ob.y0 = rr.top - 4; ob.y1 = rr.bottom + 4;
-  placed.length = 0;
-  labelEpoch++;
-  const h = labelFontPx ? labelFontPx * 1.9 : 22;
-  _cam.copy(camera.position);
-  const tryPlace = (p, force) => {
-    if (!force && p.c._lbl === labelEpoch) return false;   // one label per structure (left and right share a card)
-    partOffset(p, S.explode, _o);
-    if (S.section.on) { _o2.copy(_o).add(p.c0); if (!slabFit(p, _o, _o2)) return false; _o.copy(_o2); }   // only parts that cross the slab, anchored inside it
-    else _o.add(p.c0);
-    if (!force && p.dir && depthOf(p) <= 1) {   // skip superficial parts on the far side of the body
-      const dx = _cam.x - _o.x, dy = _cam.y - _o.y, dz = _cam.z - _o.z;
-      if ((p.dir[0] * dx + p.dir[1] * dy + p.dir[2] * dz) < 0) return false;
-    }
-    _p.copy(_o).project(camera);
-    if (_p.z > 1 || _p.z < -1) return false;
-    const x = (_p.x * .5 + .5) * W, y = (-_p.y * .5 + .5) * H;
-    if (x < 8 || x > W - 8 || y < topLim || y > botLim) return false;
-    const w = labelWidth(p), r = rectPool[placed.length];
-    r.x0 = x - w / 2; r.x1 = x + w / 2; r.y0 = y - h / 2; r.y1 = y + h / 2; r.p = p; r.sel = force;
-    if (r.x0 < 4) { r.x1 += 4 - r.x0; r.x0 = 4; } if (r.x1 > W - 4) { r.x0 -= r.x1 - (W - 4); r.x1 = W - 4; }
-    if (force && r.x0 < ob.x1 + 3 && r.x1 > ob.x0 - 3 && r.y0 < ob.y1 + 2 && r.y1 > ob.y0 - 2) return false;
-    if (!force) {   // try the spot itself, then one slot down / up, before giving up
-      const y0 = r.y0, y1 = r.y1; let ok = false;
-      for (let s = 0; s < 3 && !ok; s++) {
-        const dy = s === 0 ? 0 : (s === 1 ? h + 3 : -(h + 3));
-        r.y0 = y0 + dy; r.y1 = y1 + dy;
-        if (r.y0 < topLim - 2 || r.y1 > botLim + 2) continue;
-        if (r.x0 < ob.x1 + 3 && r.x1 > ob.x0 - 3 && r.y0 < ob.y1 + 2 && r.y1 > ob.y0 - 2) continue;
-        ok = true;
-        for (const q of capRects) if (r.x0 < q.x1 + 4 && r.x1 > q.x0 - 4 && r.y0 < q.y1 + 3 && r.y1 > q.y0 - 3) { ok = false; break; }
-        if (!ok) continue;
-        for (let i = 0; i < placed.length; i++) { const q = placed[i]; if (r.x0 < q.x1 + 4 && r.x1 > q.x0 - 4 && r.y0 < q.y1 + 3 && r.y1 > q.y0 - 3) { ok = false; break; } }
-      }
-      if (!ok) return false;
-    }
-    p.c._lbl = labelEpoch; placed.push(r); return true;
-  };
-  if (S.sel) {
-    for (const p of S.sel.parts) if (p.vis && placed.length < MAX_LABELS) tryPlace(p, true);
-  } else {
-    labelIdx.fill(0);
-    let budget = 900, progress = true;
-    while (placed.length < MAX_LABELS && budget > 0 && progress) {
-      progress = false;
-      for (let b = 0; b < labelBuckets.length && placed.length < MAX_LABELS; b++) {
-        const arr = labelBuckets[b];
-        while (labelIdx[b] < arr.length && budget > 0) {
-          const p = arr[labelIdx[b]++]; budget--; progress = true;
-          if (tryPlace(p, false)) break;
-        }
-      }
-    }
-  }
-  while (labelPool.length < placed.length) { const e = el('div', 'lbl'); labelsEl.append(e); labelPool.push(e); }
-  for (let i = 0; i < labelPool.length; i++) {
-    const e = labelPool[i];
-    if (i >= placed.length) { if (e._on !== false) { e.style.display = 'none'; e._on = false; } continue; }
-    const r = placed[i];
-    if (e._pid !== r.p.i) { e._pid = r.p.i; e.textContent = ''; const d = el('i'); d.style.background = TYPE_COLOR[r.p.type] || '#999'; e.append(d, document.createTextNode(r.p.title)); }
-    if (e._sel !== r.sel) { e._sel = r.sel; e.classList.toggle('sel', !!r.sel); }
-    if (e._on !== true) { e.style.display = ''; e._on = true; }
-    e.style.transform = 'translate3d(' + Math.round(r.x0) + 'px,' + Math.round(r.y0) + 'px,0)';
-  }
-}
+menuBtn.addEventListener('click', () => setMenuOpen(true));
+$('#menuClose').addEventListener('click', () => setMenuOpen(false));
+wideMQ.addEventListener('change', () => { setMenuOpen(false); onResize(); });
 
 $('#btnReset').addEventListener('click', () => resetView());
 
@@ -1682,7 +1539,7 @@ canvasEl.addEventListener('contextmenu', e => e.preventDefault());
 
 function onTap(x, y) {
   const p = pickAt(x, y);
-  if (p) selectCard(p.c, { frame: false, sheet: sheetState === 'hidden' ? 'peek' : null });
+  if (p) selectCard(p.c, { frame: false });
   else clearSelection();
 }
 
@@ -1702,16 +1559,15 @@ function selectCard(c, { frame = false, sheet = null, fromSearch = false } = {})
   S.sel = c;
   if (isNew) pulseT0 = performance.now();
   applyAppearance();
-  renderSheet(c);
-  if (sheetState === 'hidden') setSheet(sheet || 'peek'); else if (sheet) setSheet(sheet);
-  if (isNew) setDockCollapsed(true);
+  renderSheet(c); renderBanner(c);
+  if (sheet && sheet !== 'peek') setSheet(sheet);
+  if (isNew && !isWide()) setMenuOpen(false);   // on iPhone, show the part and its name, not the drawer
   if (frame) frameParts(c.parts);
   requestRender();
 }
 function clearSelection() {
   if (!S.sel && sheetState === 'hidden') return;
-  S.sel = null; applyAppearance(); setSheet('hidden');
-  setDockCollapsed(false);
+  S.sel = null; applyAppearance(); setSheet('hidden'); selBar.hidden = true;
 }
 
 /* ------------------------------------------------------------------ info sheet */
@@ -1724,16 +1580,22 @@ function layoutSheet(animate) {
   sheetEl.style.setProperty('--hide', Math.max(0, fullH - vis) + 'px');
   if (!animate) { void sheetEl.offsetHeight; sheetEl.classList.remove('dragging'); }
 }
+const selBar = $('#selBar');
+function renderBanner(c) {
+  $('#selName').textContent = c.name;
+  $('#selLatin').textContent = c.latin && c.latin !== c.name ? c.latin : '';
+  selBar.hidden = false;
+}
+$('#selOpen').addEventListener('click', () => setSheet(sheetState === 'hidden' ? 'half' : 'hidden'));
+$('#selClose').addEventListener('click', () => clearSelection());
 function setSheet(s) {
   sheetState = s;
   sheetEl.dataset.state = s;
   sheetEl.classList.toggle('open', s !== 'hidden');
   sheetEl.setAttribute('aria-hidden', String(s === 'hidden'));
   layoutSheet(true);
-  dock.classList.toggle('away', s === 'half' || s === 'full');
-  document.documentElement.style.setProperty('--dock-bottom', s === 'peek' ? `calc(${peekH}px + 8px)` : 'max(8px, var(--safe-b))');
 }
-$('#sClose').addEventListener('click', () => clearSelection());
+$('#sClose').addEventListener('click', () => setSheet('hidden'));   // closes the card; the part stays selected and its name stays on the banner
 
 const FIELDS = {
   muscle: [['origin', 'Origin'], ['insertion', 'Insertion'], ['action', 'Action'], ['_nerve', 'Nerve supply'], ['blood', 'Blood supply']],
@@ -1829,11 +1691,11 @@ function renderSheet(c) {
     if (d.axis === 'v') {
       const proj = (d.cur || d.vis) - d.v * 160;
       const dist = s => Math.abs(snapH(s) - proj);
-      const best = ['peek', 'half', 'full'].sort((a, b) => dist(a) - dist(b))[0];
-      if (proj < peekH * .55) { clearSelection(); return; }
+      const best = ['half', 'full'].sort((a, b) => dist(a) - dist(b))[0];
+      if (proj < halfH * .55) { setSheet('hidden'); return; }
       setSheet(best);
     } else if (!d.axis && e && e.type === 'pointerup') {
-      setSheet(sheetState === 'peek' ? 'half' : sheetState === 'half' ? 'full' : 'half');
+      setSheet(sheetState === 'half' ? 'full' : 'half');
     } else layoutSheet(true);
   };
   head.addEventListener('pointerup', end); head.addEventListener('pointercancel', end);
@@ -1989,8 +1851,7 @@ addEventListener('load', reg);
     peelOrder = PEEL_ORDER.filter(l => (DATA.layers || []).some(x => x.id === l));
     for (const l of DATA.layers || []) S.layers[l.id] = true;
     buildRegions(); buildChips(); applyVisibility(); applyAppearance(); updatePeel(); syncExplodeUI(); applySection(); applyTheme();
-    dockExpandedH = dock.offsetHeight || dockExpandedH;
-    computeShift();
+    layoutMenu(); computeShift();
     // initial framing: whole body, front view, inside the free area
     const g = fitBox(boxOfParts(parts, 0), new THREE.Vector3(0, .05, 1), bottomOccupied());
     camera.position.copy(g.target).addScaledVector(g.dir, g.dist); controls.target.copy(g.target); camera.lookAt(g.target);
@@ -2002,7 +1863,7 @@ addEventListener('load', reg);
     window.__ready = true; $('#loadErr').hidden = true;
     window.__loadMs = performance.now() - t0;
     window.__app = {
-      S, parts, cardIdx, selectCard, clearSelection, setSheet, setRegion, camera, controls, scene, renderer, pickAt, pickables, resetView, frameRegion, setLabels,
+      S, parts, cardIdx, selectCard, clearSelection, setSheet, setRegion, camera, controls, scene, renderer, pickAt, pickables, resetView, frameRegion,
       setExplodeTarget, layoutStack, setSection, applySection, lookAtCut, slabPlanes, buckets, requestRender,
       get stack() { return { axis: S.stackAxis.toArray(), step: stackStep, ranks: stackRanks.slice(), cur: Array.from(stackCur), tgt: Array.from(stackTgt) }; },
       get secRange() { return { lo: secRange.lo, hi: secRange.hi, level: secLevelValue() }; },

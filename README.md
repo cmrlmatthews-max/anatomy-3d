@@ -4,10 +4,11 @@ An interactive 3D model of the full human body for iPhone. It shows 2,387 parts 
 
 ## Tools
 
-- **Tap** a structure to isolate it and open its study card. Tap empty space to restore the body. A selected pale part (bone, cartilage, ligament, tendon) turns blue so it stands out.
-- **Labels** is off by default. Turn it on to show names on the model.
-- **Layers** chips are small and wrap, so all of them show at once. **Peel** hides systems from the outside in.
-- **Explode** is a layer stack, like an exploded axonometric. The skeleton, joints, nerves, vessels, brain and spinal cord stay in place. Organs, deep muscle, middle muscle and superficial muscle lift off sideways, one slot each. At 100% no two layers overlap. Hidden or empty layers take no slot. A small caption names each slot. Reset frames the whole stack.
+- **Tap** a structure to isolate it. Its name shows on a banner under the region bar. Tap the banner to open the study card. Tap empty space (or the banner's X) to restore the body. A selected pale part (bone, cartilage, ligament, tendon) turns blue so it stands out.
+- **Side menu** (left) holds Layers, Peel, Explode and Section. On iPad and desktop it is always open. On iPhone, tap "Layers & tools" to open it.
+- The 3D view has no text labels.
+- **Layers** is a list with a check mark for each system that shows. **Peel** hides systems from the outside in.
+- **Explode** is a layer stack, like an exploded axonometric. The skeleton, joints, nerves, vessels, brain and spinal cord stay in place. Organs, deep muscle, middle muscle and superficial muscle lift off sideways, one slot each. At 100% no two layers overlap. Hidden or empty layers take no slot. Reset frames the whole stack.
 - **Section** cuts a slab through the body on one of the three body planes (axial, coronal, sagittal). The cut faces show solid. Everything between you and the cut is removed, like a plan cut: look down at a neck-level cut and the head is gone. Whatever lies beyond the slab stays as a faint ghost. The key figure shows where the cut is. The slider range follows the region picker. "Look at cut" is the only camera move this tool makes.
 
 ## Files
