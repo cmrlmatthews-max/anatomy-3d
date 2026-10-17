@@ -4,8 +4,9 @@ An interactive 3D model of the full human body for iPhone. It shows 2,387 parts 
 
 ## Tools
 
-- **Tap** a structure to isolate it. Its name shows on a banner under the region bar. Tap the banner to open the study card. Tap empty space (or the banner's X) to restore the body. A selected pale part (bone, cartilage, ligament, tendon) turns blue so it stands out.
+- **Tap** a structure to isolate it. Its name shows on a small banner above the model. Tap the banner to open the study card, which slides in from the right. Tap empty space (or the banner's X) to restore the body. A selected pale part (bone, cartilage, ligament, tendon) turns blue so it stands out.
 - **Side menu** (left) holds Layers, Peel, Explode and Section. On iPad and desktop it is always open. On iPhone, tap "Layers & tools" to open it.
+- **Three zones** on iPad and desktop: with the study card open, the menu, the model and the card each take one third of the screen. The model slides sideways (no zoom) to stay centered in its zone. On iPhone, the menu and the card are drawers, and opening one closes the other.
 - The 3D view has no text labels.
 - **Layers** is a list with a check mark for each system that shows. **Peel** hides systems from the outside in.
 - **Explode** is a layer stack, like an exploded axonometric. The skeleton, joints, nerves, vessels, brain and spinal cord stay in place. Organs, deep muscle, middle muscle and superficial muscle lift off sideways, one slot each. At 100% no two layers overlap. Hidden or empty layers take no slot. Reset frames the whole stack.

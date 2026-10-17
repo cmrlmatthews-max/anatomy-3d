@@ -130,7 +130,7 @@ canvas#c{position:fixed;inset:0;width:100%;height:100%;display:block;touch-actio
 .empty{padding:22px 12px;text-align:center;color:var(--text2)}
 
 /* ---------- right rail ---------- */
-#rail{position:fixed;z-index:8;right:calc(10px + var(--safe-r));top:calc(var(--safe-t) + max(48px,calc(var(--ctl) + .4rem)) + var(--ctl) + 34px);display:flex;flex-direction:column;gap:8px}
+#rail{position:fixed;z-index:8;right:calc(10px + var(--safe-r));transition:right .32s cubic-bezier(.2,.85,.25,1);top:calc(var(--safe-t) + max(48px,calc(var(--ctl) + .4rem)) + var(--ctl) + 34px);display:flex;flex-direction:column;gap:8px}
 .rail-btn{width:3.3rem;height:3.3rem;border-radius:18px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:var(--fs-2xs);font-weight:650;color:var(--text)}
 
 /* ---------- side menu (left): fixed panel on wide screens, slide-in drawer on iPhone ---------- */
@@ -138,7 +138,7 @@ canvas#c{position:fixed;inset:0;width:100%;height:100%;display:block;touch-actio
 @media (min-width:760px){ :root{--menu-w:272px} }
 #menu{position:fixed;z-index:13;left:calc(10px + var(--safe-l));top:var(--menu-top);bottom:max(10px,var(--safe-b));width:var(--menu-w);
   border-radius:22px;padding:4px 12px 16px;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;touch-action:pan-y;
-  display:flex;flex-direction:column;gap:6px;transition:transform .32s cubic-bezier(.2,.85,.25,1)}
+  display:flex;flex-direction:column;gap:6px;transition:transform .32s cubic-bezier(.2,.85,.25,1),width .32s cubic-bezier(.2,.85,.25,1)}
 #menu h3{margin:0;font-size:var(--fs-xs);font-weight:700;letter-spacing:.11em;font-variant-caps:all-small-caps;text-transform:lowercase;color:var(--text3)}
 .mh{display:flex;align-items:center;gap:2px;min-height:44px}
 .mh h3{flex:1}
@@ -172,25 +172,22 @@ canvas#c{position:fixed;inset:0;width:100%;height:100%;display:block;touch-actio
   #menu.open{transform:none;visibility:visible;transition:transform .32s cubic-bezier(.2,.85,.25,1)}
   #menuClose{display:grid}
   body.menu-open #menuBtn{opacity:0;pointer-events:none}
+  body #sheet{bottom:calc(max(12px, calc(var(--safe-b) + 4px)) + 56px)}   /* stop above the menu button, so it can switch drawers */
 }
-@media (min-width:760px){ #menuBtn{display:none} }
+@media (min-width:760px){ #menuBtn{display:none} body.card-open #rail{right:calc(20px + var(--card-w) + var(--safe-r))} }
 /* section rows inside the narrow menu: plane picker and "Look at cut" take full lines; the thickness stepper wraps under the slider */
 #secRows .seg,#secRows .btn.look{flex:1 1 100%}
 #secRows .btn.look{justify-content:center}
 
 /* ---------- selected structure: name banner under the region bar (tap to open the study card) ---------- */
-#selBar{position:fixed;z-index:10;top:var(--menu-top);left:calc(10px + var(--safe-l));right:calc(18px + 3.3rem + var(--safe-r));max-width:560px;margin:0 auto;
-  border-radius:20px;display:flex;align-items:center;gap:2px;padding:4px 4px 4px 16px}
-@media (min-width:760px){ #selBar{left:calc(20px + var(--menu-w) + var(--safe-l))} }
-#selOpen{flex:1;min-width:0;display:flex;align-items:center;gap:8px;text-align:left;min-height:52px;padding:4px 0}
-#selOpen .t{flex:1;min-width:0;display:flex;flex-direction:column}
-#selName{font-family:var(--serif);font-optical-sizing:auto;font-size:var(--fs-lg);font-weight:640;letter-spacing:-.012em;line-height:1.15;
-  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-#selLatin{font-family:var(--serif);font-style:italic;font-weight:420;font-size:var(--fs-sm);color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-#selLatin:empty{display:none}
-#selOpen .more{display:inline-flex;align-items:center;gap:1px;font-size:var(--fs-xs);font-weight:650;color:var(--accent);flex:none}
-#selOpen .more svg{width:1rem;height:1rem}
-@media (max-width:420px){ #selOpen .more{font-size:0;gap:0} }
+#selBar{position:fixed;z-index:10;top:var(--menu-top);left:var(--zone-l,10px);right:var(--zone-r,74px);width:fit-content;margin:0 auto;
+  border-radius:999px;display:flex;align-items:center;padding:0 2px 0 14px;transition:left .32s cubic-bezier(.2,.85,.25,1),right .32s cubic-bezier(.2,.85,.25,1)}
+#selOpen{flex:1;min-width:0;display:flex;align-items:center;gap:4px;min-height:40px;text-align:left}
+#selName{font-family:var(--serif);font-optical-sizing:auto;font-size:var(--fs-md);font-weight:640;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+#selOpen .more{display:grid;place-items:center;color:var(--accent);flex:none}
+#selOpen .more svg{width:1.05rem;height:1.05rem;transition:transform .25s}
+body.card-open #selOpen .more svg{transform:rotate(180deg)}
+#selClose{width:36px;height:36px}
 .btn{height:var(--ctl);min-height:40px;border-radius:999px;padding:0 .95em;display:inline-flex;align-items:center;gap:.5em;flex:none;
   background:var(--fill);font-weight:600;font-size:var(--fs-sm);white-space:nowrap;transition:background .15s,transform .12s,color .15s}
 .btn[aria-pressed="true"],.btn.primary{background:var(--accent);color:#fff}
@@ -222,30 +219,27 @@ input[type=range]::-moz-range-thumb{width:28px;height:28px;border:0;border-radiu
 .stepper.thick .pl{min-width:3.6rem}
 .stepper.thick button{width:2.3rem}
 /* ---------- bottom sheet ---------- */
-#sheet{position:fixed;z-index:12;left:0;right:0;bottom:0;max-width:680px;margin:0 auto;height:700px;transform:translateY(110%);
-  border-radius:26px 26px 0 0;display:flex;flex-direction:column;overflow:hidden;
-  transition:transform .38s cubic-bezier(.2,.85,.25,1);will-change:transform;pointer-events:none;
-  background:var(--glass);border:.5px solid var(--glass-border);border-bottom:0;box-shadow:0 -8px 40px rgba(0,0,0,.28);
+/* study card: right side panel (slides in from the right; on wide screens it takes the right third) */
+#sheet{position:fixed;z-index:12;top:var(--menu-top);bottom:max(10px,var(--safe-b));right:calc(10px + var(--safe-r));width:var(--card-w,380px);
+  border-radius:22px;display:flex;flex-direction:column;overflow:hidden;pointer-events:none;visibility:hidden;
+  transform:translateX(calc(100% + 24px));transition:transform .32s cubic-bezier(.2,.85,.25,1),width .32s cubic-bezier(.2,.85,.25,1),visibility 0s .32s;
+  background:var(--glass);border:.5px solid var(--glass-border);box-shadow:var(--shadow);
   -webkit-backdrop-filter:blur(28px) saturate(1.8);backdrop-filter:blur(28px) saturate(1.8)}
-@media (min-width:760px){ #sheet{left:calc(20px + var(--menu-w) + var(--safe-l));right:calc(10px + var(--safe-r))} }
-#sheet.open{pointer-events:auto}
-#sheet.dragging{transition:none}
-#sheetHead{flex:none;padding:6px max(12px, var(--safe-r)) 0 max(16px, var(--safe-l));touch-action:none;cursor:grab}
-.grabber{width:38px;height:5px;border-radius:3px;background:var(--text3);margin:0 auto 4px;opacity:.7}
+#sheet.open{transform:none;visibility:visible;pointer-events:auto;transition:transform .32s cubic-bezier(.2,.85,.25,1),width .32s cubic-bezier(.2,.85,.25,1)}
+#sheetHead{flex:none;padding:10px 8px 0 18px}
 .hrow{display:flex;align-items:center;gap:4px;min-height:3rem}
 .hrow .tt{flex:1;min-width:0;padding:0 4px 0 0}
 .hrow h2{margin:0;font-family:var(--serif);font-optical-sizing:auto;font-size:var(--fs-lg);font-weight:620;letter-spacing:-.012em;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .latin{font-family:var(--serif);font-optical-sizing:auto;font-style:italic;font-weight:420;font-size:var(--fs-sm);color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:.1em}
 .nav{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;color:var(--text2);flex:none}
 .nav:active{background:var(--fill)}
-#sheet:not([data-state="peek"]) h2,#sheet:not([data-state="peek"]) .latin{white-space:normal;overflow:visible;text-overflow:clip}
-#sheet[data-state="peek"] .latin,#sheet[data-state="peek"] #sChips{display:none}
+#sheet h2,#sheet .latin{white-space:normal;overflow:visible;text-overflow:clip}
 #sChips{display:flex;flex-wrap:wrap;gap:6px;padding:4px 0 10px}
 .tag{display:inline-flex;align-items:center;gap:6px;min-height:1.7rem;padding:0 .75em;border-radius:999px;background:var(--fill);font-size:var(--fs-xs);font-weight:620;letter-spacing:.01em;color:var(--text2)}
 .tag .dot{width:.6em;height:.6em;border-radius:50%}
 .tag.side{background:var(--accent);color:#fff}
 #sheetBody{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;touch-action:pan-y;
-  padding:4px max(18px, var(--safe-r)) calc(24px + var(--safe-b) + var(--hide,0px)) max(18px, var(--safe-l));-webkit-user-select:text;user-select:text}
+  padding:4px 18px 24px 18px;-webkit-user-select:text;user-select:text}
 .summary{font-size:var(--fs-md);line-height:1.5;margin:4px 0 14px;text-wrap:pretty}
 .field{margin:0 0 14px}
 .field h4{margin:0 0 .25em;font-size:var(--fs-xs);font-weight:700;letter-spacing:.11em;font-variant-caps:all-small-caps;text-transform:lowercase;color:var(--text3)}
@@ -380,13 +374,12 @@ input[type=range]::-moz-range-thumb{width:28px;height:28px;border:0;border-radiu
 </aside>
 
 <div id="selBar" class="glass" hidden>
-  <button id="selOpen" aria-label="Open study card"><span class="t"><b id="selName"></b><em id="selLatin"></em></span><span class="more">Details<svg class="i" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></span></button>
+  <button id="selOpen" aria-label="Open study card"><b id="selName"></b><span class="more"><svg class="i" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></span></button>
   <button id="selClose" class="nav" aria-label="Clear selection"><svg class="i" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
 </div>
 
 <section id="sheet" aria-label="Structure details" data-state="hidden" aria-hidden="true">
   <div id="sheetHead">
-    <div class="grabber"></div>
     <div class="hrow">
       <div class="tt"><h2 id="sName"></h2><div class="latin" id="sLatin"></div></div>
       <button class="nav" id="sClose" aria-label="Close details"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9 9l6 6M15 9l-6 6"/></svg></button>
@@ -808,7 +801,7 @@ function onResize() {
   W = innerWidth; H = innerHeight;
   renderer.setSize(W, H, false);
   camera.aspect = W / H; camera.updateProjectionMatrix();
-  measureUI(); layoutMenu(); layoutSheet(false); computeShift(); requestRender();
+  measureUI(); layoutMenu(); computeShift(); requestRender();
 }
 addEventListener('resize', onResize);
 addEventListener('orientationchange', () => setTimeout(onResize, 250));
@@ -832,11 +825,9 @@ renderer.domElement.addEventListener('webglcontextrestored', () => {
 const probeB = el('div'), probeT = el('div'), probePeek = el('div');
 for (const p of [probeB, probeT, probePeek]) { p.style.cssText = 'position:fixed;left:0;top:0;width:0;visibility:hidden;pointer-events:none'; document.body.append(p); }
 probeB.style.height = 'var(--safe-b)'; probeT.style.height = 'var(--safe-t)'; probePeek.style.height = 'var(--peek-h)';
-let safeB = 0, safeT = 0, peekH = 72, halfH = 400, fullH = 700;
+let safeB = 0, safeT = 0, peekH = 72;
 function measureUI() {
   safeB = probeB.offsetHeight; safeT = probeT.offsetHeight; peekH = probePeek.offsetHeight || 72;
-  halfH = Math.round(H * 0.5); fullH = Math.round(H - safeT - 16);
-  sheetEl.style.height = fullH + 'px';
 }
 
 /* ------------------------------------------------------------------ framing */
@@ -844,22 +835,40 @@ const regionsEl = $('#regions'), railEl = $('#rail'), menuEl = $('#menu'), menuB
 const wideMQ = matchMedia('(min-width: 760px)');
 const isWide = () => wideMQ.matches;
 function topOccupied() { return Math.round(regionsEl.getBoundingClientRect().bottom) + 6; }
-// On wide screens the side menu is fixed, so the model is centred in the area to its right. On iPhone the menu is a drawer
-// that covers the model when open, so it takes no space; only the small menu button at the bottom does.
-function leftOccupied() { return isWide() ? Math.round(menuEl.getBoundingClientRect().right) + 8 : 0; }
-function bottomBase() { return isWide() ? Math.max(8, safeB) + 8 : Math.max(12, safeB + 4) + 56; }
-function bottomOccupied() {
-  if (sheetState === 'half' || sheetState === 'full') return snapH(sheetState);
-  return bottomBase();
+// Panel widths. Wide screens: the menu is 272 px, and when the study card opens the menu and the card each take one third,
+// so menu | model | card are three equal zones. iPhone: both panels are drawers that cover the model and take no space.
+const MENU_W = 272, GAP = 10;
+let menuW = MENU_W, cardW = 380;
+const cardOpen = () => sheetState !== 'hidden';
+function panelWidths() {
+  if (isWide()) {
+    const third = Math.floor((W - 4 * GAP) / 3);
+    cardW = third; menuW = cardOpen() ? Math.max(MENU_W, third) : MENU_W;
+  } else { menuW = Math.min(300, Math.round(W * .84)); cardW = Math.min(420, Math.round(W * .92)); }
 }
-// The projection centre is fixed (never changes on select): the middle of the free area with the study card closed.
-function computeShift() {
-  viewShift = (bottomBase() - topOccupied()) / 2;
-  viewShiftX = -leftOccupied() / 2;
-  applyViewOffset();
+function leftOccupied() { return isWide() ? GAP + menuW + 8 : 0; }
+function rightOccupied() { return isWide() && cardOpen() ? GAP + cardW + 8 : 0; }
+function bottomBase() { return isWide() ? Math.max(8, safeB) + 8 : Math.max(12, safeB + 4) + 56; }
+function bottomOccupied() { return bottomBase(); }
+// The projection centre sits in the middle of the free zone. It moves only when a panel opens or closes (a sideways pan:
+// no zoom, no rotation); selecting a part never moves it.
+let shiftTween = null;
+function computeShift(animate = false) {
+  const ny = (bottomBase() - topOccupied()) / 2, nx = (rightOccupied() - leftOccupied()) / 2;
+  if (shiftTween) { shiftTween.dead = true; shiftTween = null; }
+  if (!animate || (Math.abs(nx - viewShiftX) < .5 && Math.abs(ny - viewShift) < .5)) { viewShiftX = nx; viewShift = ny; applyViewOffset(); requestRender(); return; }
+  const fx = viewShiftX, fy = viewShift;
+  shiftTween = tween(320, k => { viewShiftX = fx + (nx - fx) * k; viewShift = fy + (ny - fy) * k; applyViewOffset(); });
+  requestRender();
 }
 function layoutMenu() {
-  document.documentElement.style.setProperty('--menu-top', (Math.round(regionsEl.getBoundingClientRect().bottom) + 8) + 'px');
+  panelWidths();
+  const st = document.documentElement.style, railW = railEl.offsetWidth || 53;
+  st.setProperty('--menu-top', (Math.round(regionsEl.getBoundingClientRect().bottom) + 8) + 'px');
+  st.setProperty('--menu-w', menuW + 'px'); st.setProperty('--card-w', cardW + 'px');
+  // the name banner centres in the model zone, clear of the menu, the open card and the Reset button
+  st.setProperty('--zone-l', (isWide() ? leftOccupied() : GAP) + 'px');
+  st.setProperty('--zone-r', (rightOccupied() + GAP + railW + 8) + 'px');
 }
 
 const _right = new THREE.Vector3(), _up = new THREE.Vector3(), _dirV = new THREE.Vector3(), _cc = new THREE.Vector3();
@@ -879,7 +888,7 @@ function fitBox(box, dir, bottomOcc, minDist = .12) {
     hz = Math.max(hz, Math.abs(x * _dirV.x + y * _dirV.y + z * _dirV.z));
   }
   const top = topOccupied(), area = Math.max(160, H - top - bottomOcc);
-  const left = leftOccupied(), areaW = Math.max(160, W - left - 10);
+  const left = leftOccupied(), areaW = Math.max(160, W - left - Math.max(10, rightOccupied()));
   const tanV = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
   const zV = hy * H / (tanV * .94 * area), zH = hx * H / (tanV * .95 * (areaW - 20));
   const d = Math.max(zV + hz, zH + hz, minDist);
@@ -1479,6 +1488,7 @@ $('#btnLookCut').addEventListener('click', lookAtCut);
 /* ------------------------------------------------------------------ toggles */
 /* side menu drawer (iPhone only; on wide screens the menu is always open) */
 function setMenuOpen(open) {
+  if (open && !isWide() && sheetState !== 'hidden') setSheet('hidden');
   menuEl.classList.toggle('open', open); document.body.classList.toggle('menu-open', open);
   menuBtn.setAttribute('aria-expanded', String(open));
 }
@@ -1572,28 +1582,22 @@ function clearSelection() {
 
 /* ------------------------------------------------------------------ info sheet */
 let sheetState = 'hidden';
-function snapH(s) { return s === 'hidden' ? 0 : s === 'peek' ? peekH : s === 'half' ? halfH : fullH; }
-function layoutSheet(animate) {
-  const vis = snapH(sheetState);
-  if (!animate) sheetEl.classList.add('dragging');
-  sheetEl.style.transform = `translateY(${sheetState === 'hidden' ? fullH + 30 : fullH - vis}px)`;
-  sheetEl.style.setProperty('--hide', Math.max(0, fullH - vis) + 'px');
-  if (!animate) { void sheetEl.offsetHeight; sheetEl.classList.remove('dragging'); }
-}
 const selBar = $('#selBar');
 function renderBanner(c) {
   $('#selName').textContent = c.name;
-  $('#selLatin').textContent = c.latin && c.latin !== c.name ? c.latin : '';
   selBar.hidden = false;
 }
-$('#selOpen').addEventListener('click', () => setSheet(sheetState === 'hidden' ? 'half' : 'hidden'));
+$('#selOpen').addEventListener('click', () => setSheet(sheetState === 'hidden' ? 'open' : 'hidden'));
 $('#selClose').addEventListener('click', () => clearSelection());
 function setSheet(s) {
-  sheetState = s;
-  sheetEl.dataset.state = s;
-  sheetEl.classList.toggle('open', s !== 'hidden');
-  sheetEl.setAttribute('aria-hidden', String(s === 'hidden'));
-  layoutSheet(true);
+  const open = s !== 'hidden', was = sheetState;
+  sheetState = open ? 'open' : 'hidden';
+  sheetEl.dataset.state = sheetState;
+  sheetEl.classList.toggle('open', open);
+  sheetEl.setAttribute('aria-hidden', String(!open));
+  document.body.classList.toggle('card-open', open);
+  if (open && !isWide()) setMenuOpen(false);   // iPhone: one drawer at a time
+  if (was !== sheetState) { layoutMenu(); computeShift(true); }
 }
 $('#sClose').addEventListener('click', () => setSheet('hidden'));   // closes the card; the part stays selected and its name stays on the banner
 
@@ -1660,46 +1664,6 @@ function renderSheet(c) {
   }
   if (card.clinical) { const f = fieldEl('Clinical note', card.clinical); const box = el('div', 'clin'); box.append(...f.childNodes); bodyEl.append(box); }
 }
-
-/* sheet drag */
-(function sheetGestures() {
-  const head = $('#sheetHead');
-  let g = null;
-  head.addEventListener('pointerdown', e => {
-    if (e.target.closest('button')) return;
-    g = { x: e.clientX, y: e.clientY, t: performance.now(), lastY: e.clientY, lastT: performance.now(), v: 0, axis: null, vis: snapH(sheetState), id: e.pointerId };
-    head.setPointerCapture(e.pointerId);
-  });
-  head.addEventListener('pointermove', e => {
-    if (!g || e.pointerId !== g.id) return;
-    const dx = e.clientX - g.x, dy = e.clientY - g.y;
-    if (!g.axis && Math.hypot(dx, dy) > 7) { g.axis = Math.abs(dy) >= Math.abs(dx) ? 'v' : 'h'; if (g.axis === 'v') sheetEl.classList.add('dragging'); }
-    const now = performance.now();
-    if (now - g.lastT > 0) g.v = (e.clientY - g.lastY) / (now - g.lastT) * .5 + g.v * .5;
-    g.lastY = e.clientY; g.lastT = now;
-    if (g.axis === 'v') {
-      const vis = clamp(g.vis - dy, 20, fullH);
-      sheetEl.style.transform = `translateY(${fullH - vis}px)`;
-      sheetEl.style.setProperty('--hide', Math.max(0, fullH - vis) + 'px');
-      g.cur = vis;
-    }
-  });
-  const end = e => {
-    if (!g || (e && e.pointerId !== g.id)) return;
-    const d = g; g = null;
-    sheetEl.classList.remove('dragging');
-    if (d.axis === 'v') {
-      const proj = (d.cur || d.vis) - d.v * 160;
-      const dist = s => Math.abs(snapH(s) - proj);
-      const best = ['half', 'full'].sort((a, b) => dist(a) - dist(b))[0];
-      if (proj < halfH * .55) { setSheet('hidden'); return; }
-      setSheet(best);
-    } else if (!d.axis && e && e.type === 'pointerup') {
-      setSheet(sheetState === 'half' ? 'full' : 'half');
-    } else layoutSheet(true);
-  };
-  head.addEventListener('pointerup', end); head.addEventListener('pointercancel', end);
-})();
 
 /* ------------------------------------------------------------------ search: fuzzy, one result per card */
 const qIn = $('#q'), resultsEl = $('#results'), qClear = $('#qclear');
@@ -1839,7 +1803,7 @@ addEventListener('load', reg);
 (async function boot() {
   try {
     W = innerWidth; H = innerHeight; renderer.setSize(W, H, false); camera.aspect = W / H; camera.updateProjectionMatrix();
-    measureUI(); layoutSheet(false);
+    measureUI();
     const t0 = performance.now();
     buildEnv();
     const gltfs = await loadAll();
