@@ -175,7 +175,7 @@ canvas#c{position:fixed;inset:0;width:100%;height:100%;display:block;touch-actio
   body #sheet{bottom:calc(max(12px, calc(var(--safe-b) + 4px)) + 56px)}   /* stop above the menu button, so it can switch drawers */
 }
 @media (min-width:760px){ #menuBtn{display:none} body.card-open #rail{right:calc(20px + var(--card-w) + var(--safe-r))} }
-/* section rows inside the narrow menu: plane picker and "Look at cut" take full lines; the thickness stepper wraps under the slider */
+/* section rows inside the narrow menu: plane picker and "Scan view" take full lines */
 #secRows .seg,#secRows .btn.look{flex:1 1 100%}
 #secRows .btn.look{justify-content:center}
 
@@ -216,8 +216,8 @@ input[type=range]::-moz-range-thumb{width:28px;height:28px;border:0;border-radiu
 .keyfig .sil{fill:none;stroke:var(--text3);stroke-width:4.5;stroke-linecap:round;stroke-linejoin:round}
 .keyfig .rng{fill:currentColor;opacity:.13}
 .keyfig .slab{fill:currentColor;opacity:.95}
-.stepper.thick .pl{min-width:3.6rem}
-.stepper.thick button{width:2.3rem}
+/* scan view: orientation letters at the edges of the model zone (radiology convention) */
+#orient span{position:fixed;left:0;top:0;z-index:7;pointer-events:none;font-size:var(--fs-sm);font-weight:750;letter-spacing:.04em;color:var(--text3);will-change:transform}
 /* ---------- bottom sheet ---------- */
 /* study card: right side panel (slides in from the right; on wide screens it takes the right third) */
 #sheet{position:fixed;z-index:12;top:var(--menu-top);bottom:max(10px,var(--safe-b));right:calc(10px + var(--safe-r));width:var(--card-w,380px);
@@ -351,7 +351,7 @@ input[type=range]::-moz-range-thumb{width:28px;height:28px;border:0;border-radiu
           <button data-plane="coronal" role="radio" aria-checked="false">Coronal</button>
           <button data-plane="sagittal" role="radio" aria-checked="false">Sagittal</button>
         </div>
-        <button id="btnLookCut" class="btn look"><svg class="i" viewBox="0 0 24 24"><path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6z"/><circle cx="12" cy="12" r="2.6"/></svg>Look at cut</button>
+        <button id="btnScan" class="btn look" aria-pressed="false"><svg class="i" viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="17" height="17" rx="3"/><ellipse cx="12" cy="12" rx="5.2" ry="4"/><path d="M12 8v8"/></svg>Scan view</button>
       </div>
       <div class="row">
         <svg class="keyfig" viewBox="-4 0 108 180" aria-hidden="true">
@@ -364,15 +364,11 @@ input[type=range]::-moz-range-thumb{width:28px;height:28px;border:0;border-radiu
           <rect id="kfSlab" class="slab" x="0" y="0" width="0" height="0"/>
         </svg>
         <input id="secLevel" type="range" min="0" max="1000" value="500" step="1" aria-label="Cut position">
-        <div class="stepper thick" role="group" aria-label="Slab thickness">
-          <button id="thickMinus" aria-label="Thinner slab"><svg class="i" viewBox="0 0 24 24"><path d="M6 12h12"/></svg></button>
-          <div class="pl"><b id="thickLbl">2 cm</b><small>thick</small></div>
-          <button id="thickPlus" aria-label="Thicker slab"><svg class="i" viewBox="0 0 24 24"><path d="M6 12h12M12 6v12"/></svg></button>
-        </div>
       </div>
     </div>
 </aside>
 
+<div id="orient" aria-hidden="true" hidden><span data-o="l"></span><span data-o="r"></span><span data-o="t"></span><span data-o="b"></span></div>
 <div id="selBar" class="glass" hidden>
   <button id="selOpen" aria-label="Open study card"><b id="selName"></b><span class="more"><svg class="i" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></span></button>
   <button id="selClose" class="nav" aria-label="Clear selection"><svg class="i" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
@@ -457,7 +453,7 @@ const STACK_GAP_MIN = .05;      // ...but never less than 5 cm
 const MAX_LAYERS = 12;          // size of the per-layer offset table in the vertex shader
 // Section cut: the three body planes (world axes: X = left/right, Y = up, Z = front/back).
 const SEC_AXES = { axial: new THREE.Vector3(0, 1, 0), coronal: new THREE.Vector3(0, 0, 1), sagittal: new THREE.Vector3(1, 0, 0) };
-const THICK_STEPS = [.005, .01, .02, .03, .05, .08, .12, .2, .3];   // slab thickness choices (m)
+const SLICE = .005;   // every cut is one thin slice (5 mm), like a CT slice
 
 // Colour classes = glTF material names. [colour, roughness]. Saturated atlas palette.
 const CLS = {
@@ -477,7 +473,7 @@ const MUSCLE_VARIANT = { muscle_superficial: 'Muscle_sup', muscle_mid: 'Muscle_m
 const S = {
   layers: {}, tendons: true, region: 'all', sel: null, explode: 0, explodeTarget: 0,
   stackAxis: new THREE.Vector3(1, 0, 0),           // fixed while exploded; chosen from the view when the explode starts
-  section: { on: false, plane: 'axial', frac: .5, thick: .02 },   // frac = position inside the region's range along the plane normal
+  section: { on: false, plane: 'axial', frac: .5 },   // frac = position inside the region's range along the plane normal
 };
 let DATA = null;                 // parts.json
 let CARDS = {}, GLOSSARY = [];   // cards.json
@@ -508,7 +504,7 @@ window.__fatal = fatal;
 /* ------------------------------------------------------------------ renderer / scene */
 let renderer;
 try {
-  renderer = new THREE.WebGLRenderer({ canvas: $('#c'), antialias: true, alpha: true, powerPreference: 'high-performance' });
+  renderer = new THREE.WebGLRenderer({ canvas: $('#c'), antialias: true, alpha: true, stencil: true, powerPreference: 'high-performance' });
 } catch (e) {
   fatal('Your browser could not start 3D graphics (WebGL). Try updating iOS or restarting Safari.');
   throw e;
@@ -527,6 +523,17 @@ renderer.toneMappingExposure = 1.0;
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(32, 1, 0.02, 60);   // far enough for a fully exploded stack on a portrait screen
 scene.add(camera);
+// Scan view: a flat (orthographic) camera that looks exactly along the cut normal, in the radiology orientation: axial seen
+// from the feet (patient's right on screen left, front at the top), coronal from the front (patient's right on screen left),
+// sagittal from the patient's left (front on screen left). Rotation is locked; drag pans, pinch or wheel zooms.
+const scanCam = new THREE.OrthographicCamera(-1, 1, 1, -1, .05, 9); scene.add(scanCam);
+const SCAN = {
+  axial:    { dir: new THREE.Vector3(0, -1, 0), up: new THREE.Vector3(0, 0, 1), s: -1, o: ['R', 'L', 'A', 'P'] },
+  coronal:  { dir: new THREE.Vector3(0, 0, 1),  up: new THREE.Vector3(0, 1, 0), s: 1,  o: ['R', 'L', 'S', 'I'] },
+  sagittal: { dir: new THREE.Vector3(1, 0, 0),  up: new THREE.Vector3(0, 1, 0), s: 1,  o: ['A', 'P', 'S', 'I'] },
+};
+const scan = { on: false, center: new THREE.Vector3(), viewH: 1, key: '' };
+const viewCam = () => scan.on ? scanCam : camera;
 scene.matrixWorldAutoUpdate = false;   // static scene: only the camera (and its lights) and the exploding body move; see frame() / refreshWorld()
 scene.environmentIntensity = 0.42;
 // soft studio reflections so the slightly glossy materials read as forms. Built at boot and again after a WebGL context restore
@@ -698,6 +705,74 @@ function applyGhostTheme() {
   for (const [k, m] of ghostMats) { setGhostColor(m, k); m.opacity = d ? .12 : .2; }
   for (const [k, m] of secGhostMats) { setGhostColor(m, k); m.opacity = d ? .16 : .22; }   // a single layer (depth pre-pass), so it reads as one calm surface
   for (const [k, m] of homeGhostMats) { setGhostColor(m, k); m.opacity = d ? .07 : .12; }
+  capFadeColors();
+}
+
+/* ------------------------------------------------------------------ section caps: filled cut faces
+   A thin slice seen straight on shows almost no surface (the walls of each part are edge-on), so the cut face is drawn
+   explicitly. A depth + stencil pass draws everything beyond the cut plane (no colour): the nearest surface along each
+   pixel's ray decides the stencil. If that surface faces away from the viewer, the ray is leaving a part, so the plane
+   point is inside that part: the stencil holds the part's class number. A front face writes 0. Then one flat quad per class
+   on the plane fills its pixels with the class's cut colour. Only the first surface counts, so holes or duplicate faces
+   elsewhere on a mesh do not matter. The cap sits on the slab face toward the viewer, so it works from any angle. */
+const capClip = new THREE.Plane(new THREE.Vector3(0, -1, 0), 0);
+const beyondOpts = (side, ref, extra) => Object.assign({ colorWrite: false, depthWrite: true, depthTest: true, side, clippingPlanes: [capClip],
+  stencilWrite: true, stencilRef: ref, stencilFunc: THREE.AlwaysStencilFunc, stencilFail: THREE.KeepStencilOp, stencilZFail: THREE.KeepStencilOp,
+  stencilZPass: THREE.ReplaceStencilOp }, extra || {});
+const beyondFront = withExplode(new THREE.MeshBasicMaterial(beyondOpts(THREE.FrontSide, 0))); beyondFront.name = 'beyond-front';
+const beyondBackMats = new Map();
+function beyondBack(ref) {
+  let m = beyondBackMats.get(ref); if (m) return m;
+  m = withExplode(new THREE.MeshBasicMaterial(beyondOpts(THREE.BackSide, ref))); m.name = 'beyond-back-' + ref; beyondBackMats.set(ref, m); return m;
+}
+// the selection (per-part meshes, CPU explode): pulled a hair forward so it wins over the identical bucket surfaces
+const SEL_REF = 255, selPull = { polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -2 };
+const selBeyondFront = new THREE.MeshBasicMaterial(beyondOpts(THREE.FrontSide, 0, selPull));
+const selBeyondBack = new THREE.MeshBasicMaterial(beyondOpts(THREE.BackSide, SEL_REF, selPull));
+const capGeo = new THREE.PlaneGeometry(1, 1);
+const capGroup = new THREE.Group(); capGroup.matrixAutoUpdate = false; scene.add(capGroup);
+const capMats = new Map(), capByCls = new Map();
+function capMat(c, ref) {
+  let m = capMats.get(c); if (m) return m;
+  m = new THREE.MeshBasicMaterial({ color: cutColor(c), side: THREE.DoubleSide, stencilWrite: true, stencilRef: ref,
+    stencilFunc: THREE.EqualStencilFunc, stencilFail: THREE.KeepStencilOp, stencilZFail: THREE.KeepStencilOp, stencilZPass: THREE.KeepStencilOp });
+  m.userData.base = m.color.clone(); m.name = c + '-cap'; capMats.set(c, m); return m;
+}
+const ORDER_BEYOND = 10, ORDER_SEL_BEYOND = 11, ORDER_CAP = 12;
+const selCapMat = capMat('__sel', SEL_REF);
+const selCap = new THREE.Mesh(capGeo, selCapMat);
+selCap.renderOrder = ORDER_CAP; selCap.visible = false; selCap.matrixAutoUpdate = false; selCap.frustumCulled = false; capGroup.add(selCap);
+const _bgD = new THREE.Color(0x1b1f2a), _bgL = new THREE.Color(0xe6eaf2);
+// While a part is isolated, the other cut faces fade back so the selected cut face stands out.
+function capFadeColors() {
+  const fade = !!S.sel, bg = isDark() ? _bgD : _bgL;
+  for (const m of capMats.values()) if (m !== selCapMat) { m.color.copy(m.userData.base); if (fade) m.color.lerp(bg, .72); }
+}
+let selCapFor = null; const selBeyond = [];
+function syncSelCap() {
+  const want = S.section.on && S.sel ? S.sel : null;
+  if (want !== selCapFor) {
+    for (const st of selBeyond) if (st.parent) st.parent.remove(st);
+    selBeyond.length = 0; selCapFor = want;
+    if (want) {
+      for (const p of want.parts) for (const m of p.meshes) for (const mat of [selBeyondFront, selBeyondBack]) {
+        const st = new THREE.Mesh(m.geometry, mat);
+        st.renderOrder = ORDER_SEL_BEYOND; st.frustumCulled = false; st.matrixAutoUpdate = false;
+        m.add(st); st.updateWorldMatrix(false, false); selBeyond.push(st);
+      }
+      selCapMat.color.copy(getSel(want.parts[0].meshes[0].userData.cls).color);
+    }
+  }
+  for (const st of selBeyond) { const m = st.parent, p = m.userData.part; st.visible = p.vis && (m.userData.cls !== 'Tendon' || S.tendons); }
+  selCap.visible = !!want;
+}
+const _capC = new THREE.Vector3(), _capQ = new THREE.Quaternion(), _capS = new THREE.Vector3(), _capZ = new THREE.Vector3(0, 0, 1);
+function placeCap(ax, capL, s) {
+  capClip.normal.copy(ax).multiplyScalar(-s); capClip.constant = s * capL;   // keep only what lies beyond the cap plane
+  const box = regionBox(S.region); box.getCenter(_capC); _capC.addScaledVector(ax, capL - axisCoord(_capC, ax));
+  const size = 2 * (box.getSize(_capS).length() + stackStep * stackRanks.length) + .5;
+  _capQ.setFromUnitVectors(_capZ, ax);
+  capGroup.matrix.compose(_capC, _capQ, _capS.set(size, size, 1)); capGroup.updateMatrixWorld(true);
 }
 
 /* ------------------------------------------------------------------ helpers: names */
@@ -742,8 +817,10 @@ function applyExplode() {
   if (mergedReady) syncHomeGhost();
 }
 function applyViewOffset() {
-  if (Math.abs(viewShift) < 0.4 && Math.abs(viewShiftX) < 0.4) camera.clearViewOffset();
-  else camera.setViewOffset(W, H, viewShiftX, viewShift, W, H);
+  for (const c of [camera, scanCam]) {
+    if (Math.abs(viewShift) < 0.4 && Math.abs(viewShiftX) < 0.4) c.clearViewOffset();
+    else c.setViewOffset(W, H, viewShiftX, viewShift, W, H);
+  }
 }
 // Offset of a part at explode amount t. `table` is stackCur (what is on screen) or stackTgt (where the layout is heading).
 function partOffset(p, t, out, table = stackCur) {
@@ -792,8 +869,9 @@ function frame(now) {
   }
   controls.update();
   camera.updateMatrixWorld();   // scene.matrixWorldAutoUpdate is off, so the camera (and the lights on it) is updated here
+  if (scan.on) { scanCam.updateMatrixWorld(); layoutOrient(); }
   if (S.section.on) updateSectionSide();
-  renderer.render(scene, camera);
+  renderer.render(scene, viewCam());
   if (busy) requestRender();
 }
 
@@ -801,7 +879,7 @@ function onResize() {
   W = innerWidth; H = innerHeight;
   renderer.setSize(W, H, false);
   camera.aspect = W / H; camera.updateProjectionMatrix();
-  measureUI(); layoutMenu(); computeShift(); requestRender();
+  measureUI(); layoutMenu(); computeShift(); if (scan.on) scanFit(); requestRender();
 }
 addEventListener('resize', onResize);
 addEventListener('orientationchange', () => setTimeout(onResize, 250));
@@ -933,6 +1011,7 @@ function frameRegion(id = S.region, dur = 700) {
   moveCamera(g, dur);
 }
 function resetView() {
+  if (scan.on) { scanFit(); return; }
   const id = S.region, reg = (id === 'all' ? parts : parts.filter(p => p.region === id));
   const vis = reg.filter(p => p.vis);
   const dir = new THREE.Vector3(0, .06, id === 'back' ? -1 : 1);
@@ -1097,6 +1176,33 @@ function buildParts(gltfs) {
    The 2,974 per-part meshes stay in the scene for picking and exploding, but while nothing is exploded they are hidden and the
    same triangles are drawn from ~200 merged buckets (layer x region x colour class). Merged buckets are toggled, never rebuilt. */
 let buckets = [], mergedReady = false;
+// The source meshes are not wound consistently: about 4 in 10 are inside-out (triangles and normals both point inward).
+// Double-sided shading hides this, but the cut faces must know inside from outside, so each inside-out mesh is turned right
+// side out once at load (triangle order reversed, normals negated). Shading does not change.
+function fixWinding() {
+  let flipped = 0;
+  for (const p of parts) for (const m of p.meshes) {
+    const g = m.geometry, P = g.attributes.position, N = g.attributes.normal, idx = g.index;
+    if (!idx) continue;
+    if (!g.boundingBox) g.computeBoundingBox();
+    const bb = g.boundingBox, cx = (bb.min.x + bb.max.x) / 2, cy = (bb.min.y + bb.max.y) / 2, cz = (bb.min.z + bb.max.z) / 2;
+    const I = idx.array;
+    let v = 0;
+    for (let i = 0; i < I.length; i += 3) {   // signed volume about the box centre
+      const a = I[i], b = I[i + 1], c = I[i + 2];
+      const ax = P.getX(a) - cx, ay = P.getY(a) - cy, az = P.getZ(a) - cz;
+      const bx = P.getX(b) - cx, by = P.getY(b) - cy, bz = P.getZ(b) - cz;
+      const qx = P.getX(c) - cx, qy = P.getY(c) - cy, qz = P.getZ(c) - cz;
+      v += ax * (by * qz - bz * qy) + ay * (bz * qx - bx * qz) + az * (bx * qy - by * qx);
+    }
+    if (v >= 0) continue;
+    for (let i = 0; i < I.length; i += 3) { const t = I[i + 1]; I[i + 1] = I[i + 2]; I[i + 2] = t; }
+    idx.needsUpdate = true;
+    if (N) { for (let i = 0; i < N.count; i++) N.setXYZ(i, -N.getX(i), -N.getY(i), -N.getZ(i)); N.needsUpdate = true; }
+    flipped++;
+  }
+  return flipped;
+}
 function buildMerged() {
   body.updateMatrixWorld(true);
   const groups = new Map();
@@ -1134,6 +1240,19 @@ function buildMerged() {
     const secDepth = mk(secDepthMat, 1), secMesh = mk(getSecGhost(g.cls), 2), homeMesh = mk(getHomeGhost(g.cls), 3);
     mergedRoot.add(mesh, secDepth, secMesh, homeMesh); g.mesh = mesh; g.secDepth = secDepth; g.secMesh = secMesh; g.homeMesh = homeMesh; buckets.push(g);
   }
+  // section caps: two depth + stencil companions per bucket (front faces write 0, back faces write the class number), then
+  // one cap per colour class
+  [...new Set(buckets.map(g => g.cls))].forEach((c, k) => {
+    const ref = k + 1;   // 1..254 (255 is the selection)
+    for (const g of buckets) if (g.cls === c) {
+      g.capS = [beyondFront, beyondBack(ref)].map(mat => {
+        const st = new THREE.Mesh(g.mesh.geometry, mat); st.visible = false; st.matrixAutoUpdate = false; st.frustumCulled = false;
+        st.renderOrder = ORDER_BEYOND; mergedRoot.add(st); return st;
+      });
+    }
+    const cap = new THREE.Mesh(capGeo, capMat(c, ref)); cap.renderOrder = ORDER_CAP; cap.visible = false; cap.matrixAutoUpdate = false; cap.frustumCulled = false;
+    capGroup.add(cap); capByCls.set(c, cap);
+  });
   mergedRoot.updateMatrixWorld(true);
   mergedReady = true;
 }
@@ -1147,7 +1266,7 @@ function precompile() {
   geo.setAttribute('aLayer', new THREE.Float32BufferAttribute([0, 0, 0], 1));
   const g = new THREE.Group(); g.add(new THREE.Mesh(geo, getGhost('Bone')), new THREE.Mesh(geo, getSel('Bone')));
   // compile() only visits visible objects, so add one stand-in per bucket material variant
-  for (const m of [getMBase('Bone'), getSecGhost('Bone'), secDepthMat, getHomeGhost('Bone')]) g.add(new THREE.Mesh(geo, m));
+  for (const m of [getMBase('Bone'), getSecGhost('Bone'), secDepthMat, getHomeGhost('Bone'), beyondFront, beyondBack(1), selBeyondFront, selBeyondBack]) g.add(new THREE.Mesh(geo, m));
   try { renderer.compile(g, camera, scene); } catch (e) { console.warn('precompile', e); }
   geo.dispose();
 }
@@ -1156,13 +1275,16 @@ function bucketVisible(g) { return !!S.layers[g.layer] && (S.region === 'all' ||
 // isolated structure (solid, at its CPU explode position); every other per-part mesh is on the pick-only layer.
 function syncRender() {
   if (!parts.length) return;
-  const sel = S.sel, sec = S.section.on, lifted = S.explode > .02 && !sel;
+  const sel = S.sel, sec = S.section.on, lifted = S.explode > .02 && !sel && !scan.on;
   for (const g of buckets) {
     const on = bucketVisible(g); g.mesh.visible = on;
     if (on) { const want = sel ? getGhost(g.cls) : getMBase(g.cls); if (g.mesh.material !== want) g.mesh.material = want; }
-    g.secDepth.visible = g.secMesh.visible = on && sec;
+    g.secDepth.visible = g.secMesh.visible = on && sec && !scan.on;   // scan view shows the slice only
     g.homeMesh.visible = on && lifted && stackRank(g.layer) > 0;
+    g.capS[0].visible = g.capS[1].visible = on && sec;
   }
+  for (const [c, cap] of capByCls) cap.visible = sec && buckets.some(g => g.cls === c && g.capS[0].visible);
+  capFadeColors(); syncSelCap();
   lastLifted = lifted;
   // Per-part meshes live on layer 1 (pick-only). Only the isolated selection is also put on layer 0, which the camera renders.
   for (const p of parts) {
@@ -1178,7 +1300,7 @@ function refreshWorld() { if (worldDirty) { body.updateMatrixWorld(true); worldD
 // cheap bucket-only pass used while the explode animates (home ghosts appear once the layers have lifted a little)
 let lastLifted = false;
 function syncHomeGhost() {
-  const lifted = S.explode > .02 && !S.sel;
+  const lifted = S.explode > .02 && !S.sel && !scan.on;
   if (lifted === lastLifted) return;
   lastLifted = lifted;
   for (const g of buckets) g.homeMesh.visible = bucketVisible(g) && lifted && stackRank(g.layer) > 0;
@@ -1291,7 +1413,7 @@ function stackRank(layer) { const r = stackRanks.find(x => x.layer === layer); r
 // The stack runs toward the right of the screen, snapped to the nearest world axis (X or Z). Chosen when the explode starts
 // from zero and kept until it returns to zero, so orbiting never re-arranges the stack.
 function chooseStackAxis() {
-  const e = camera.matrixWorld.elements;   // column 0 = camera right, in world space
+  const e = viewCam().matrixWorld.elements;   // column 0 = camera right, in world space
   const rx = e[0], rz = e[2];
   // The body's natural line-up axis is left-right, so X wins unless the view is clearly from the side.
   if (Math.abs(rz) > .8) S.stackAxis.set(0, 0, rz >= 0 ? 1 : -1); else S.stackAxis.set(rx >= 0 || Math.abs(rx) < 1e-6 ? 1 : -1, 0, 0);
@@ -1348,8 +1470,8 @@ btnExplode.addEventListener('click', () => { sliderDragging = false; setExplodeT
 
 /* ------------------------------------------------------------------ section cut: a slab between two planes on one of the three body planes.
    The slab is drawn solid with flat cut faces; everything outside it is a faint ghost. The slider range follows the region.
-   Nothing here moves the camera except the "Look at cut" button. */
-const secRows = $('#secRows'), btnSection = $('#btnSection'), secLevel = $('#secLevel'), thickLbl = $('#thickLbl'), segEl = $('.seg');
+   Nothing here moves the 3D camera. "Scan view" switches to a separate flat camera (see setScan). */
+const secRows = $('#secRows'), btnSection = $('#btnSection'), secLevel = $('#secLevel'), segEl = $('.seg'), btnScan = $('#btnScan'), orientEl = $('#orient');
 const kf = { sil: $('#kfSil'), range: $('#kfRange'), slab: $('#kfSlab') };
 const secRange = { lo: 0, hi: 1 };
 const secAxis = () => SEC_AXES[S.section.plane];
@@ -1361,7 +1483,7 @@ function sectionRange() {
   secRange.lo = lo - pad; secRange.hi = hi + pad;
 }
 const secLevelValue = () => secRange.lo + (secRange.hi - secRange.lo) * S.section.frac;
-const secHalf = () => S.section.thick / 2;
+const secHalf = () => SLICE / 2;
 function inSlab(v) {   // world point inside the slab? (true when the cut is off)
   if (!S.section.on) return true;
   const d = axisCoord(v, secAxis()), L = secLevelValue(), h = secHalf();
@@ -1391,6 +1513,7 @@ function applySection() {
   } else {
     slabPlanes[0].constant = 1e4; slabPlanes[1].constant = 1e4; uCutOn.value = 0;
   }
+  if (scan.on) { if (sec.plane + '|' + S.region !== scan.key) scanFit(); else scanPlace(); }
   updateKeyFigure(); syncSectionUI();
   requestRender();
 }
@@ -1401,10 +1524,14 @@ const _vd = new THREE.Vector3();
 function updateSectionSide() {
   const ax = secAxis(), L = secLevelValue(), h = secHalf();
   uSecN.value.copy(ax); uSecL.value = L;
-  const d = axisCoord(camera.position, ax) - L;
-  if (Math.abs(d) > h) uNearSign.value = d > 0 ? 1 : -1;
-  else { _vd.subVectors(controls.target, camera.position); uNearSign.value = axisCoord(_vd, ax) <= 0 ? 1 : -1; }
+  if (scan.on) uNearSign.value = SCAN[S.section.plane].s;   // scan view: the viewer side is fixed by the orientation
+  else {
+    const d = axisCoord(camera.position, ax) - L;
+    if (Math.abs(d) > h) uNearSign.value = d > 0 ? 1 : -1;
+    else { _vd.subVectors(controls.target, camera.position); uNearSign.value = axisCoord(_vd, ax) <= 0 ? 1 : -1; }
+  }
   uNearAlpha.value = 0;
+  placeCap(ax, L + h * uNearSign.value, uNearSign.value);
 }
 // Key figure: a small silhouette (front view for axial + sagittal, side view for coronal) with the region's range tinted and
 // the slab drawn as a bright band, so you always see where the cut is.
@@ -1439,13 +1566,12 @@ function syncSectionUI() {
   const v = Math.round(sec.frac * 1000);
   if (!secDragging) secLevel.value = v;
   secLevel.style.setProperty('--p', (secDragging ? secLevel.value / 10 : sec.frac * 100).toFixed(1) + '%');
-  thickLbl.textContent = sec.thick < .01 ? Math.round(sec.thick * 1000) + ' mm' : (Math.round(sec.thick * 100 * 10) / 10) + ' cm';
-  const ti = THICK_STEPS.indexOf(sec.thick);
-  $('#thickMinus').disabled = ti <= 0; $('#thickPlus').disabled = ti >= THICK_STEPS.length - 1;
+  btnScan.setAttribute('aria-pressed', String(scan.on));
 }
 let secDragging = false;
 function setSection(on) {
   S.section.on = on;
+  if (!on) setScan(false);
   applySection(); syncRender(); requestRender();
 }
 btnSection.addEventListener('click', () => setSection(!S.section.on));
@@ -1453,37 +1579,62 @@ for (const b of $$('button', segEl)) b.addEventListener('click', () => { S.secti
 secLevel.addEventListener('input', () => { secDragging = true; S.section.frac = secLevel.value / 1000; applySection(); });
 const endSecDrag = () => { secDragging = false; syncSectionUI(); };
 secLevel.addEventListener('change', endSecDrag); secLevel.addEventListener('pointerup', endSecDrag); secLevel.addEventListener('touchend', endSecDrag);
-function stepThick(d) {
-  const i = clamp(THICK_STEPS.indexOf(S.section.thick) + d, 0, THICK_STEPS.length - 1);
-  S.section.thick = THICK_STEPS[i]; applySection();
+// Scan view: the cut seen exactly straight on, flat (no perspective), at true scale at every depth, like a CT image.
+// The 3D camera stays where it was, so turning scan view off returns to the same 3D view.
+const _sr = new THREE.Vector3();
+const scanRight = P => _sr.crossVectors(P.up, P.dir);   // screen right = up x back
+function scanPlace() {
+  const P = SCAN[S.section.plane], ax = secAxis();
+  scan.center.addScaledVector(ax, secLevelValue() - axisCoord(scan.center, ax));   // stay on the cut plane
+  scanCam.up.copy(P.up);
+  scanCam.position.copy(scan.center).addScaledVector(P.dir, 4);
+  scanCam.lookAt(scan.center);
+  const hh = scan.viewH / 2, hw = hh * W / H;
+  scanCam.left = -hw; scanCam.right = hw; scanCam.top = hh; scanCam.bottom = -hh;
+  scanCam.updateProjectionMatrix(); scanCam.updateMatrixWorld();
+  requestRender();
 }
-$('#thickMinus').addEventListener('click', () => stepThick(-1));
-$('#thickPlus').addEventListener('click', () => stepThick(1));
-// The one camera move this tool makes, and only on request: look straight at the slab from the side you are on, framed to
-// the parts that cross it.
-function lookAtCut() {
-  if (!S.section.on) return;
-  const ax = secAxis(), L = secLevelValue(), h = secHalf();
-  const camOff = camera.position.clone().sub(controls.target);
-  const side = axisCoord(camOff, ax) >= 0 ? 1 : -1;
-  const dir = ax.clone().multiplyScalar(side);
-  if (S.section.plane === 'axial') {   // a touch off the orbit pole so the view keeps its bearings
-    const hz = new THREE.Vector3(camOff.x, 0, camOff.z); if (hz.lengthSq() < 1e-6) hz.set(0, 0, 1);
-    dir.addScaledVector(hz.normalize(), .07).normalize();
-  }
+// Frame the parts the cut passes through, inside the free zone (between the panels, below the top bar).
+function scanFit() {
+  const P = SCAN[S.section.plane], ax = secAxis(), L = secLevelValue(), h = secHalf();
   const t = S.explodeTarget, inCut = [];
   for (const p of parts) { if (!p.vis) continue; partOffset(p, t, _o, stackTgt); if (slabFit(p, _o, null)) inCut.push(p); }
   const reg = S.region === 'all' ? parts : parts.filter(p => p.region === S.region);
-  const box = boxOfParts(inCut.length ? inCut : reg.filter(p => p.vis));
-  if (inCut.length) {   // clamp the box to the slab along the plane normal
-    const lo = L - h, hi = L + h;
-    if (ax.x) { box.min.x = Math.max(box.min.x, lo); box.max.x = Math.min(box.max.x, hi); }
-    if (ax.y) { box.min.y = Math.max(box.min.y, lo); box.max.y = Math.min(box.max.y, hi); }
-    if (ax.z) { box.min.z = Math.max(box.min.z, lo); box.max.z = Math.min(box.max.z, hi); }
-  }
-  moveCamera(fitBox(box, dir, bottomOccupied(), .12));
+  const vis = reg.filter(p => p.vis);
+  let box = boxOfParts(inCut.length ? inCut : (vis.length ? vis : reg));
+  if (box.isEmpty()) box = regionBox(S.region).clone();
+  box.getCenter(scan.center);
+  const sz = box.getSize(new THREE.Vector3()), r = scanRight(P).clone(), u = P.up;
+  const ext = v => Math.abs(v.x) * sz.x + Math.abs(v.y) * sz.y + Math.abs(v.z) * sz.z;
+  const areaW = Math.max(160, W - leftOccupied() - Math.max(10, rightOccupied())), areaH = Math.max(160, H - topOccupied() - bottomOccupied());
+  scan.viewH = clamp(Math.max(ext(r) / (.86 * areaW), ext(u) / (.86 * areaH)) * H, .06, 6);
+  scan.key = S.section.plane + '|' + S.region;
+  scanPlace();
 }
-$('#btnLookCut').addEventListener('click', lookAtCut);
+function setScan(on) {
+  on = !!on && S.section.on;
+  if (on === scan.on) return;
+  scan.on = on;
+  cancelCameraTween();
+  controls.enabled = !on;                                      // rotation locked; scan view has its own pan + zoom
+  (on ? scanCam : camera).add(key, key.target, fillL, fillL.target, rim, rim.target);   // the lights follow the active camera
+  orientEl.hidden = !on; orientKey = '';
+  if (on) { if (!isWide()) setMenuOpen(false); scanFit(); }
+  applyViewOffset(); syncRender(); applySection(); requestRender();
+}
+btnScan.addEventListener('click', () => setScan(!scan.on));
+// Orientation letters at the middle of each edge of the model zone.
+let orientKey = '';
+function layoutOrient() {
+  const P = SCAN[S.section.plane], l = leftOccupied() || 10, r = W - (rightOccupied() || 10);
+  const t = topOccupied() + (selBar.hidden ? 6 : 52), b = H - bottomOccupied() - 4, mx = (l + r) / 2, my = (t + b) / 2;
+  const k = [P.o.join(''), l, r, t, b].join('|'); if (k === orientKey) return; orientKey = k;
+  const sp = orientEl.children;
+  for (let i = 0; i < 4; i++) sp[i].textContent = P.o[i];
+  const w = i => sp[i].offsetWidth || 10, hh = i => sp[i].offsetHeight || 16;
+  const at = (i, x, y) => { sp[i].style.transform = 'translate3d(' + Math.round(x) + 'px,' + Math.round(y) + 'px,0)'; };
+  at(0, l + 8, my - hh(0) / 2); at(1, r - 8 - w(1), my - hh(1) / 2); at(2, mx - w(2) / 2, t); at(3, mx - w(3) / 2, b - hh(3));
+}
 
 /* ------------------------------------------------------------------ toggles */
 /* side menu drawer (iPhone only; on wide screens the menu is always open) */
@@ -1502,7 +1653,7 @@ $('#btnReset').addEventListener('click', () => resetView());
    (pickList is rebuilt whenever those rules change in applyVisibility, never on selection) */
 const raycaster = new THREE.Raycaster();
 raycaster.layers.set(1);
-const _ndc = new THREE.Vector2();
+const _ndc = new THREE.Vector2(), _nm3 = new THREE.Matrix3(), _fn = new THREE.Vector3();
 function pickables() {
   if (pickList) return pickList;
   const list = [];
@@ -1511,9 +1662,19 @@ function pickables() {
 }
 function rayPart(x, y, list) {
   _ndc.set(x / W * 2 - 1, -(y / H) * 2 + 1);
-  raycaster.setFromCamera(_ndc, camera);
+  raycaster.setFromCamera(_ndc, viewCam());
   let hits = raycaster.intersectObjects(list, false);
-  if (S.section.on) hits = hits.filter(h => inSlab(h.point));   // the cut-away sides are a ghost: tapping them picks nothing
+  if (S.section.on) {
+    // A tap on a cut face: the first surface beyond the cap plane (as the caps are drawn). If it faces away from the viewer,
+    // the ray is leaving that part, so the tapped point on the cut face is inside it.
+    const ax = secAxis(), s = uNearSign.value, capL = secLevelValue() + secHalf() * s;
+    const first = hits.find(h => (axisCoord(h.point, ax) - capL) * s < 0);
+    if (first && first.face) {
+      _nm3.getNormalMatrix(first.object.matrixWorld); _fn.copy(first.face.normal).applyMatrix3(_nm3);
+      if (_fn.dot(raycaster.ray.direction) > 0) return first.object.userData.part;
+    }
+    hits = hits.filter(h => inSlab(h.point));   // the cut-away sides are a ghost: tapping them picks nothing
+  }
   if (!hits.length) return null;
   for (const h of hits) { const p = h.object.userData.part; if (p.st !== 'ghost') return p; }  // a solid (selected) part beats ghosts in front of it
   return hits[0].object.userData.part;
@@ -1521,7 +1682,7 @@ function rayPart(x, y, list) {
 let lastPick = { rays: 0, ms: 0 };
 function pickAt(cx, cy) {
   const t0 = performance.now();
-  camera.updateMatrixWorld(); refreshWorld();
+  viewCam().updateMatrixWorld(); refreshWorld();
   const list = pickables();
   let rays = 1, p = rayPart(cx, cy, list);
   if (!p) for (const dx of [-16, 16]) { rays++; p = rayPart(cx + dx, cy, list); if (p) break; }
@@ -1546,6 +1707,43 @@ canvasEl.addEventListener('pointerup', e => {
 });
 canvasEl.addEventListener('pointercancel', e => { ptrs.delete(e.pointerId); if (!ptrs.size) tap = null; else if (tap) tap.ok = false; });
 canvasEl.addEventListener('contextmenu', e => e.preventDefault());
+// Scan view navigation: one finger (or mouse) pans, two fingers pinch-zoom and pan, the wheel zooms at the pointer.
+const scanPtrs = new Map();
+function scanPan(dx, dy) {
+  const P = SCAN[S.section.plane], wpp = scan.viewH / H, r = scanRight(P);
+  scan.center.addScaledVector(r, -dx * wpp).addScaledVector(P.up, dy * wpp);
+  scanPlace();
+}
+function scanZoomAt(x, y, f) {
+  const P = SCAN[S.section.plane], r = scanRight(P).clone();
+  const ox = x - (W / 2 - viewShiftX), oy = y - (H / 2 - viewShift);   // offset from the point the camera axis projects to
+  const w0 = scan.viewH / H; scan.viewH = clamp(scan.viewH * f, .03, 6); const dw = w0 - scan.viewH / H;
+  scan.center.addScaledVector(r, ox * dw).addScaledVector(P.up, -oy * dw);   // the point under the pointer stays put
+  scanPlace();
+}
+canvasEl.addEventListener('pointerdown', e => {
+  if (!scan.on) return;
+  scanPtrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  try { canvasEl.setPointerCapture(e.pointerId); } catch (_) {}
+});
+canvasEl.addEventListener('pointermove', e => {
+  if (!scan.on) return;
+  const q = scanPtrs.get(e.pointerId); if (!q) return;
+  if (scanPtrs.size === 1) { scanPan(e.clientX - q.x, e.clientY - q.y); q.x = e.clientX; q.y = e.clientY; return; }
+  const [a, b] = scanPtrs.values();
+  const d0 = Math.hypot(a.x - b.x, a.y - b.y), m0x = (a.x + b.x) / 2, m0y = (a.y + b.y) / 2;
+  q.x = e.clientX; q.y = e.clientY;
+  const d1 = Math.hypot(a.x - b.x, a.y - b.y), m1x = (a.x + b.x) / 2, m1y = (a.y + b.y) / 2;
+  if (d0 > 4 && d1 > 4) scanZoomAt(m1x, m1y, d0 / d1);
+  scanPan(m1x - m0x, m1y - m0y);
+});
+const scanUp = e => scanPtrs.delete(e.pointerId);
+canvasEl.addEventListener('pointerup', scanUp); canvasEl.addEventListener('pointercancel', scanUp);
+canvasEl.addEventListener('wheel', e => {
+  if (!scan.on) return;
+  e.preventDefault();
+  scanZoomAt(e.clientX, e.clientY, Math.exp(clamp(e.deltaY, -80, 80) * .004));
+}, { passive: false });
 
 function onTap(x, y) {
   const p = pickAt(x, y);
@@ -1808,6 +2006,7 @@ addEventListener('load', reg);
     buildEnv();
     const gltfs = await loadAll();
     const n = buildParts(gltfs);
+    fixWinding();
     buildMerged();
     setProgress(1, 'Preparing the shaders', '100%');
     await new Promise(r => setTimeout(r, 20));
@@ -1828,7 +2027,7 @@ addEventListener('load', reg);
     window.__loadMs = performance.now() - t0;
     window.__app = {
       S, parts, cardIdx, selectCard, clearSelection, setSheet, setRegion, camera, controls, scene, renderer, pickAt, pickables, resetView, frameRegion,
-      setExplodeTarget, layoutStack, setSection, applySection, lookAtCut, slabPlanes, buckets, requestRender,
+      setExplodeTarget, layoutStack, setSection, applySection, setScan, scan, scanCam, slabPlanes, buckets, requestRender,
       get stack() { return { axis: S.stackAxis.toArray(), step: stackStep, ranks: stackRanks.slice(), cur: Array.from(stackCur), tgt: Array.from(stackTgt) }; },
       get secRange() { return { lo: secRange.lo, hi: secRange.hi, level: secLevelValue() }; },
       get lastPick() { return lastPick; }, get tweening() { return tweens.length > 0 || !!cameraTween; }, get sheetState() { return sheetState; }, count: n, THREE, searchCards,
