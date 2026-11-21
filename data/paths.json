@@ -1,0 +1,446 @@
+{
+ "version": 1,
+ "paths": [
+  {
+   "id": "heart-blood",
+   "name": "Blood through the heart",
+   "steps": [
+    {
+     "t": "Venae cavae",
+     "n": "Blood low in oxygen returns from the body through two large veins.",
+     "k": [
+      "superior-vena-cava",
+      "inferior-vena-cava-th"
+     ]
+    },
+    {
+     "t": "Right atrium",
+     "n": "The right atrium collects the returning blood.",
+     "k": [
+      "right-atrium"
+     ]
+    },
+    {
+     "t": "Tricuspid valve",
+     "n": "Blood passes the tricuspid valve. The valve stops backflow into the atrium.",
+     "k": [
+      "inferior-leaflet-of-right-atrioventricular-valve",
+      "septal-leaflet-of-right-atrioventricular-valve"
+     ]
+    },
+    {
+     "t": "Right ventricle",
+     "n": "The right ventricle pumps the blood toward the lungs. Papillary muscles hold the valve leaflets.",
+     "k": [
+      "right-ventricle",
+      "anterior-papillary-muscle-of-right-ventricle",
+      "inferior-papillary-muscle-of-right-ventricle",
+      "septal-papillary-muscle-of-right-ventricle"
+     ]
+    },
+    {
+     "t": "Pulmonary valve",
+     "n": "Blood leaves the ventricle through the pulmonary valve.",
+     "k": [
+      "anterior-semilunar-leaflet-of-pulmonary-valve",
+      "left-semilunar-leaflet-of-pulmonary-valve",
+      "right-semilunar-leaflet-of-pulmonary-valve"
+     ]
+    },
+    {
+     "t": "Pulmonary arteries",
+     "n": "The pulmonary trunk divides and carries the blood to both lungs.",
+     "k": [
+      "pulmonary-trunk",
+      "bifurcation-of-pulmonary-trunk",
+      "left-pulmonary-artery",
+      "right-pulmonary-artery"
+     ]
+    },
+    {
+     "t": "Lungs",
+     "n": "In the lungs the blood releases carbon dioxide and takes up oxygen.",
+     "k": [
+      "superior-lobe-of-right-lung",
+      "middle-lobe-of-right-lung",
+      "inferior-lobe-of-right-lung",
+      "superior-lobe-of-left-lung",
+      "inferior-lobe-of-left-lung"
+     ]
+    },
+    {
+     "t": "Pulmonary veins",
+     "n": "Four pulmonary veins return the oxygen-rich blood to the heart.",
+     "k": [
+      "left-superior-pulmonary-vein",
+      "left-inferior-pulmonary-vein",
+      "right-superior-pulmonary-vein",
+      "right-inferior-pulmonary-vein"
+     ]
+    },
+    {
+     "t": "Left atrium",
+     "n": "The left atrium collects the blood from the lungs.",
+     "k": [
+      "left-atrium"
+     ]
+    },
+    {
+     "t": "Mitral valve",
+     "n": "Blood passes the mitral valve into the left ventricle.",
+     "k": [
+      "posterior-leaflet-of-left-atrioventricular-valve"
+     ]
+    },
+    {
+     "t": "Left ventricle",
+     "n": "The left ventricle has the thickest wall. It pumps blood to the whole body.",
+     "k": [
+      "left-ventricle",
+      "inferior-papillary-muscle-of-left-ventricle"
+     ]
+    },
+    {
+     "t": "Aortic valve",
+     "n": "Blood leaves through the aortic valve. The coronary arteries start just above it.",
+     "k": [
+      "left-coronary-leaflet",
+      "right-coronary-leaflet",
+      "non-coronary-leaflet"
+     ]
+    },
+    {
+     "t": "Aorta",
+     "n": "The aorta carries the blood to the body.",
+     "k": [
+      "ascending-aorta",
+      "aortic-arch",
+      "thoracic-aorta"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "air",
+   "name": "Air to the lungs",
+   "steps": [
+    {
+     "t": "Epiglottis",
+     "n": "The epiglottis stays open during breathing. It covers the airway during swallowing.",
+     "k": [
+      "epiglottis"
+     ]
+    },
+    {
+     "t": "Trachea",
+     "n": "Air moves down the trachea. Cartilage rings keep the trachea open.",
+     "k": [
+      "trachea"
+     ]
+    },
+    {
+     "t": "Main bronchi",
+     "n": "The trachea divides into a right and a left main bronchus.",
+     "k": [
+      "right-main-bronchus",
+      "left-main-bronchus"
+     ]
+    },
+    {
+     "t": "Lobar bronchi",
+     "n": "Each lobar bronchus supplies one lobe of a lung.",
+     "k": [
+      "right-superior-lobar-bronchus",
+      "intermediate-bronchus",
+      "middle-lobar-bronchus",
+      "right-inferior-lobar-bronchus",
+      "left-superior-lobar-bronchus",
+      "left-inferior-lobar-bronchus"
+     ]
+    },
+    {
+     "t": "Segmental bronchi",
+     "n": "Each segmental bronchus supplies one segment of a lobe.",
+     "k": [
+      "anterior-basal-segmental-bronchus-of-left-lung",
+      "anterior-segmental-bronchus-of-left-lung-biii",
+      "anterior-segmental-bronchus-of-right-lung",
+      "anteromedial-basal-segmental-bronchus-of-left-lung",
+      "apical-segmental-bronchus-of-right-lung-bi",
+      "apicoposterior-segmental-bronchus-of-left-lung-bi-bii",
+      "inferior-lingular-segmental-bronchus-of-left-lung-bv",
+      "lateral-basal-segmental-bronchus-of-left-lung",
+      "lateral-basal-segmental-bronchus-of-right-lung",
+      "lateral-segmental-bronchus-of-right-lung",
+      "medial-basal-segmental-bronchus-of-left-lung",
+      "medial-basal-segmental-bronchus-of-right-lung",
+      "medial-segmental-bronchus-of-right-lung",
+      "posterior-basal-segmental-bronchus-of-left-lung",
+      "posterior-basal-segmental-bronchus-of-right-lung",
+      "posterior-segmental-bronchus-of-right-lung",
+      "superior-lingular-segmental-broncus-of-left-lung-biv",
+      "superior-segmental-bronchus-of-left-lung",
+      "superior-segmental-bronchus-of-right-lung"
+     ]
+    },
+    {
+     "t": "Lungs",
+     "n": "Air reaches the lung tissue. Oxygen passes into the blood.",
+     "k": [
+      "superior-lobe-of-right-lung",
+      "middle-lobe-of-right-lung",
+      "inferior-lobe-of-right-lung",
+      "superior-lobe-of-left-lung",
+      "inferior-lobe-of-left-lung"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "food",
+   "name": "Food through the gut",
+   "steps": [
+    {
+     "t": "Tongue",
+     "n": "The tongue moves food and pushes it back to swallow.",
+     "k": [
+      "tongue"
+     ]
+    },
+    {
+     "t": "Oesophagus",
+     "n": "Muscle waves move the food down the oesophagus.",
+     "k": [
+      "oesophagus"
+     ]
+    },
+    {
+     "t": "Stomach",
+     "n": "The stomach mixes the food with acid and enzymes.",
+     "k": [
+      "stomach"
+     ]
+    },
+    {
+     "t": "Duodenum",
+     "n": "Bile and pancreatic juice enter the duodenum.",
+     "k": [
+      "duodenum"
+     ]
+    },
+    {
+     "t": "Jejunum",
+     "n": "The small intestine absorbs most nutrients.",
+     "k": [
+      "jejunum"
+     ]
+    },
+    {
+     "t": "Ascending colon",
+     "n": "The colon absorbs water. The content moves up the right side.",
+     "k": [
+      "ascending-colon"
+     ]
+    },
+    {
+     "t": "Transverse colon",
+     "n": "The content crosses the abdomen.",
+     "k": [
+      "transverse-colon"
+     ]
+    },
+    {
+     "t": "Descending colon",
+     "n": "The content moves down the left side.",
+     "k": [
+      "descending-colon"
+     ]
+    },
+    {
+     "t": "Sigmoid colon",
+     "n": "The sigmoid colon stores stool before it leaves the body.",
+     "k": [
+      "sigmoid-colon"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "urine",
+   "name": "Urine from the kidney",
+   "steps": [
+    {
+     "t": "Kidney",
+     "n": "The kidneys filter the blood and make urine.",
+     "k": [
+      "kidney"
+     ]
+    },
+    {
+     "t": "Renal pelvis",
+     "n": "Urine collects in the renal pelvis.",
+     "k": [
+      "renal-pelvis"
+     ]
+    },
+    {
+     "t": "Ureter",
+     "n": "Muscle waves move urine down the ureter.",
+     "k": [
+      "ureter"
+     ]
+    },
+    {
+     "t": "Urinary bladder",
+     "n": "The bladder stores urine.",
+     "k": [
+      "urinary-bladder"
+     ]
+    },
+    {
+     "t": "Urethra",
+     "n": "Urine leaves the body through the urethra.",
+     "k": [
+      "urethra"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "bile",
+   "name": "Bile to the gut",
+   "steps": [
+    {
+     "t": "Liver",
+     "n": "The liver makes bile.",
+     "k": [
+      "liver"
+     ]
+    },
+    {
+     "t": "Gallbladder",
+     "n": "The gallbladder stores bile and concentrates it.",
+     "k": [
+      "gallbladder"
+     ]
+    },
+    {
+     "t": "Bile duct",
+     "n": "After a meal, bile flows down the bile duct.",
+     "k": [
+      "bile-duct"
+     ]
+    },
+    {
+     "t": "Pancreatic duct",
+     "n": "The pancreatic duct joins the bile duct. It adds digestive enzymes.",
+     "k": [
+      "pancreatic-duct",
+      "pancreas"
+     ]
+    },
+    {
+     "t": "Duodenum",
+     "n": "Bile enters the duodenum and helps to digest fat.",
+     "k": [
+      "duodenum"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "tears",
+   "name": "Tears across the eye",
+   "steps": [
+    {
+     "t": "Lacrimal gland",
+     "n": "The lacrimal gland makes tears.",
+     "k": [
+      "lacrimal-gland"
+     ]
+    },
+    {
+     "t": "Cornea",
+     "n": "A blink spreads the tears across the cornea.",
+     "k": [
+      "cornea"
+     ]
+    },
+    {
+     "t": "Lacrimal canaliculi",
+     "n": "Tears drain through two small canals at the inner corner of the eye.",
+     "k": [
+      "lacrimal-canaliculus",
+      "ampulla-of-lacrimal-canaliculus"
+     ]
+    },
+    {
+     "t": "Lacrimal sac",
+     "n": "The canals open into the lacrimal sac.",
+     "k": [
+      "lacrimal-sac"
+     ]
+    },
+    {
+     "t": "Nasolacrimal duct",
+     "n": "The duct carries the tears into the nose.",
+     "k": [
+      "nasolacrimal-duct"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "arm-blood",
+   "name": "Blood to the hand",
+   "steps": [
+    {
+     "t": "Aortic arch",
+     "n": "Blood for the arms leaves the aortic arch.",
+     "k": [
+      "aortic-arch"
+     ]
+    },
+    {
+     "t": "Subclavian artery",
+     "n": "The right side starts with the brachiocephalic trunk. Each subclavian artery runs under the clavicle.",
+     "k": [
+      "brachiocephalic-trunk",
+      "right-subclavian-artery",
+      "left-subclavian-artery"
+     ]
+    },
+    {
+     "t": "Axillary artery",
+     "n": "The artery changes its name at the first rib. It crosses the armpit.",
+     "k": [
+      "axillary-artery"
+     ]
+    },
+    {
+     "t": "Brachial artery",
+     "n": "The brachial artery runs down the arm. You feel its pulse at the elbow.",
+     "k": [
+      "brachial-artery"
+     ]
+    },
+    {
+     "t": "Radial and ulnar arteries",
+     "n": "The brachial artery divides at the elbow. You feel the radial pulse at the wrist.",
+     "k": [
+      "radial-artery",
+      "ulnar-artery"
+     ]
+    },
+    {
+     "t": "Palmar arches",
+     "n": "The two arteries join in two arches in the palm.",
+     "k": [
+      "superficial-palmar-arch",
+      "deep-palmar-arch"
+     ]
+    }
+   ]
+  }
+ ]
+}

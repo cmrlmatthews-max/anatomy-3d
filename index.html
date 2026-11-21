@@ -250,6 +250,25 @@ input[type=range]::-moz-range-thumb{width:28px;height:28px;border:0;border-radiu
 .clin{background:var(--fill);border-radius:16px;padding:12px 14px;margin:6px 0 14px}
 .clin h4{color:var(--accent)}
 .clin p{margin:0}
+.rel h4{margin-bottom:.5em}
+.rel .rl{display:flex;align-items:center;gap:.45em;margin:.7em 0 .35em;font-size:var(--fs-xs);font-weight:650;color:var(--text2)}
+.rel .rl:first-of-type{margin-top:0}
+.rel .rl .dot{width:.7em;height:.7em;border-radius:50%;flex:none}
+.links{display:flex;flex-wrap:wrap;gap:6px}
+.lk{display:inline-flex;align-items:center;min-height:2.1rem;padding:.2em .8em;border-radius:999px;background:var(--fill);font-size:var(--fs-sm);font-weight:600;color:var(--accent);text-align:left}
+.lk:active{background:var(--fill-hi)}
+#menu .seg.xseg{flex:1 1 100%}
+#paths .li[aria-pressed="true"]{color:var(--accent);font-weight:650}
+#pathBar{position:fixed;z-index:10;left:var(--zone-l,10px);right:var(--zone-r,74px);bottom:calc(max(8px,var(--safe-b)) + 10px);width:fit-content;max-width:min(560px,calc(100vw - 20px));margin:0 auto;
+  display:flex;align-items:center;gap:2px;padding:6px;border-radius:24px}
+#pathBar[hidden]{display:none}
+#pathBar .pt{flex:1;min-width:0;padding:2px 6px;display:flex;flex-direction:column;gap:1px}
+#pathMeta{font-size:var(--fs-xs);color:var(--text3);font-weight:600}
+#pathTitle{font-family:var(--serif);font-size:var(--fs-md);font-weight:640;letter-spacing:-.01em}
+#pathNote{margin:0;font-size:var(--fs-sm);color:var(--text2)}
+#pathPrev,#pathNext{color:var(--accent)}
+#pathBar .nav:disabled{opacity:.3}
+@media (max-width:759.98px){ #pathBar{left:10px;right:10px;bottom:calc(max(12px,calc(var(--safe-b) + 4px)) + 56px)} }
 .soon{padding:14px;border-radius:14px;background:var(--fill);color:var(--text2);text-align:center;margin-top:6px}
 
 /* ---------- modals ---------- */
@@ -342,6 +361,12 @@ input[type=range]::-moz-range-thumb{width:28px;height:28px;border:0;border-radiu
     <button id="btnExplode" class="btn sm"><svg class="i" viewBox="0 0 24 24"><path d="M12 3v5M9.5 5.5L12 3l2.5 2.5M12 21v-5M9.5 18.5L12 21l2.5-2.5M3 12h5M5.5 9.5L3 12l2.5 2.5M21 12h-5M18.5 9.5L21 12l-2.5 2.5"/></svg><span>Explode</span></button>
     <input id="explode" type="range" min="0" max="100" value="0" step="1" aria-label="Explode amount">
   </div>
+  <div class="row" style="margin-top:8px">
+    <div class="seg xseg" id="xMode" role="radiogroup" aria-label="Explode mode">
+      <button data-x="layers" role="radio" aria-checked="true">Layers</button>
+      <button data-x="parts" role="radio" aria-checked="false">Parts</button>
+    </div>
+  </div>
 
   <div class="sh-row"><h3 class="sh">Section cut</h3>
     <button id="btnSection" class="switch" role="switch" aria-pressed="false" aria-checked="false" aria-label="Section cut" aria-expanded="false" aria-controls="secRows"><i></i></button>
@@ -368,6 +393,9 @@ input[type=range]::-moz-range-thumb{width:28px;height:28px;border:0;border-radiu
         <input id="secLevel" type="range" min="0" max="1000" value="500" step="1" aria-label="Cut position">
       </div>
     </div>
+
+  <h3 class="sh">Pathways</h3>
+  <div id="paths" class="layer-list" role="group" aria-label="Pathways"></div>
 </aside>
 
 <div id="orient" aria-hidden="true" hidden><span data-o="l"></span><span data-o="r"></span><span data-o="t"></span><span data-o="b"></span></div>
@@ -375,6 +403,13 @@ input[type=range]::-moz-range-thumb{width:28px;height:28px;border:0;border-radiu
   <button id="selOpen" aria-label="Open study card"><b id="selName"></b><span class="more"><svg class="i" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></span></button>
   <button id="selFocus" class="nav" aria-label="Focus: rotate around this structure" title="Rotate around this structure"><svg class="i" viewBox="0 0 24 24"><ellipse cx="12" cy="12" rx="9" ry="4" transform="rotate(-18 12 12)"/><circle cx="12" cy="12" r="2.4" fill="currentColor"/></svg></button>
   <button id="selClose" class="nav" aria-label="Clear selection"><svg class="i" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+</div>
+
+<div id="pathBar" class="glass" hidden>
+  <button id="pathPrev" class="nav" aria-label="Previous step"><svg class="i" viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg></button>
+  <div class="pt" aria-live="polite"><small id="pathMeta"></small><b id="pathTitle"></b><p id="pathNote"></p></div>
+  <button id="pathNext" class="nav" aria-label="Next step"><svg class="i" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button>
+  <button id="pathClose" class="nav" aria-label="Close pathway"><svg class="i" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
 </div>
 
 <section id="sheet" aria-label="Structure details" data-state="hidden" aria-hidden="true">
@@ -475,11 +510,15 @@ const MUSCLE_VARIANT = { muscle_superficial: 'Muscle_sup', muscle_mid: 'Muscle_m
 /* ------------------------------------------------------------------ state */
 const S = {
   layers: {}, tendons: true, region: 'all', sel: null, explode: 0, explodeTarget: 0,
+  xmode: 'layers',                                 // explode mode: 'layers' (layer stack) or 'parts' (each part moves away from the centre)
+  path: null,                                      // active pathway: { def, step, sets[] }
   stackAxis: new THREE.Vector3(1, 0, 0),           // fixed while exploded; chosen from the view when the explode starts
   section: { on: false, plane: 'axial', frac: .5 },   // frac = position inside the region's range along the plane normal
 };
 let DATA = null;                 // parts.json
 let CARDS = {}, GLOSSARY = [];   // cards.json
+let LINKS = {}, FAMILY = {};     // links.json: card key -> [[label, [card keys]]]; card key -> family name (the group that opens together)
+let PATHS = [];                  // paths.json
 let parts = [];                  // built parts
 let cardIdx = new Map();         // card key -> { key, parts[], card, name, latin, ... }
 let regionName = new Map(), layerName = new Map();
@@ -623,6 +662,24 @@ function getSel(c) {
   m = withCut(new THREE.MeshStandardMaterial({ color: boosted, roughness: Math.max(.2, r - .06), metalness: 0.02, side: THREE.DoubleSide, emissive: boosted.clone(), emissiveIntensity: .18, clippingPlanes: slabPlanes }), c);
   m.name = c + '-sel'; selMats.set(c, m); return m;
 }
+// Muscle attachments: while a muscle is selected, the bones it starts on and ends on show in these two colours.
+const ORG_COLOR = 0x00b8a0, INS_COLOR = 0xff9f0a;
+const tintMats = {};
+function getTint(kind) {
+  if (tintMats[kind]) return tintMats[kind];
+  const col = new THREE.Color(kind === 'org' ? ORG_COLOR : INS_COLOR);
+  const m = new THREE.MeshStandardMaterial({ color: col, roughness: .42, metalness: 0.02, side: THREE.DoubleSide, emissive: col.clone(), emissiveIntensity: .12, clippingPlanes: slabPlanes });
+  m.name = 'tint-' + kind; return (tintMats[kind] = m);
+}
+// Solid but calmer: the open family around a selection, and the pathway steps already passed. The colour moves part of the
+// way to grey, so the selected structure (or the current step) stays the brightest thing on screen.
+const dimMats = new Map(), _grey = new THREE.Color(0x8d93a1);
+function getDim(c) {
+  let m = dimMats.get(c); if (m) return m;
+  const [col, r] = clsDef(c);
+  m = new THREE.MeshStandardMaterial({ color: new THREE.Color(col).lerp(_grey, .42), roughness: Math.min(1, r + .12), metalness: 0.02, side: THREE.DoubleSide, clippingPlanes: slabPlanes });
+  m.name = c + '-dim'; dimMats.set(c, m); return m;
+}
 function setGhostColor(m, c) {
   const [col] = clsDef(c);
   _c.setHex(col); _c.getHSL(_hsl);
@@ -653,17 +710,22 @@ function withCut(m, c) {
   };
   return m;
 }
-// Merged-bucket materials get a tiny vertex-shader hook: position += uStack[layer] * uExplode, so the whole explode runs on the
-// GPU. uStack holds one offset per layer (the stack slot), aLayer is the layer index baked per vertex.
+// Merged-bucket materials get a small vertex-shader hook, so the whole explode runs on the GPU:
+//   position += (uStack[layer] + (partCentre - uSprC) * uSprK * uSprM[layer]) * uExplode
+// uStack holds one offset per layer (the stack slot). The second term is the part explode: each part moves away from the
+// centre uSprC (one centre each for midline, left and right parts). aPart is the part index baked per vertex; uPartTex holds
+// one texel per part (xyz = home centre, w = layer + 16 * side).
 const uExpl = { value: 0 }, uZero = { value: 0 };
 const uStack = { value: Array.from({ length: MAX_LAYERS }, () => new THREE.Vector3()) };
+const uSprC = { value: [new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3()] }, uSprK = { value: 0 }, uSprM = { value: new Array(MAX_LAYERS).fill(0) }, uPartTex = { value: null };
+const PT_W = 1024;   // width of the part texture
 function withExplode(m, explodeU = uExpl) {
   tagKey(m, 'stack');
   m.onBeforeCompile = sh => {
-    sh.uniforms.uExplode = explodeU; sh.uniforms.uStack = uStack;
+    Object.assign(sh.uniforms, { uExplode: explodeU, uStack, uSprC, uSprK, uSprM, uPartTex });
     sh.vertexShader = sh.vertexShader
-      .replace('#include <common>', '#include <common>\nattribute float aLayer;\nuniform float uExplode;\nuniform vec3 uStack[' + MAX_LAYERS + '];')
-      .replace('#include <begin_vertex>', '#include <begin_vertex>\ntransformed += uStack[int(aLayer + 0.5)] * uExplode;');
+      .replace('#include <common>', '#include <common>\nattribute float aPart;\nuniform float uExplode;\nuniform vec3 uStack[' + MAX_LAYERS + '];\nuniform vec3 uSprC[3];\nuniform float uSprK;\nuniform float uSprM[' + MAX_LAYERS + '];\nuniform highp sampler2D uPartTex;')
+      .replace('#include <begin_vertex>', '#include <begin_vertex>\n{ int pI = int(aPart + 0.5); vec4 pD = texelFetch(uPartTex, ivec2(pI % ' + PT_W + ', pI / ' + PT_W + '), 0); int wI = int(pD.w + 0.5); int lI = wI % 16;\n  transformed += (uStack[lI] + (pD.xyz - uSprC[wI / 16]) * (uSprK * uSprM[lI])) * uExplode; }');
   };
   return m;
 }
@@ -767,7 +829,7 @@ selCap.renderOrder = ORDER_CAP; selCap.visible = false; selCap.matrixAutoUpdate 
 const _bgD = new THREE.Color(0x1b1f2a), _bgL = new THREE.Color(0xe6eaf2);
 // While a part is isolated, the other cut faces fade back so the selected cut face stands out.
 function capFadeColors() {
-  const fade = !!S.sel, bg = isDark() ? _bgD : _bgL;
+  const fade = isolated(), bg = isDark() ? _bgD : _bgL;
   for (const m of capMats.values()) if (m !== selCapMat) { m.color.copy(m.userData.base); if (fade) m.color.lerp(bg, .72); }
 }
 let selCapFor = null; const selBeyond = [];
@@ -792,7 +854,7 @@ const _capC = new THREE.Vector3(), _capQ = new THREE.Quaternion(), _capS = new T
 function placeCap(ax, capL, s) {
   capClip.normal.copy(ax).multiplyScalar(-s); capClip.constant = s * capL;   // keep only what lies beyond the cap plane
   const box = regionBox(S.region); box.getCenter(_capC); _capC.addScaledVector(ax, capL - axisCoord(_capC, ax));
-  const size = 2 * (box.getSize(_capS).length() + stackStep * stackRanks.length) + .5;
+  const size = 2 * (box.getSize(_capS).length() * (1 + spr.kT) + stackStep * stackRanks.length) + .5;
   _capQ.setFromUnitVectors(_capZ, ax);
   capGroup.matrix.compose(_capC, _capQ, _capS.set(size, size, 1)); capGroup.updateMatrixWorld(true);
 }
@@ -826,16 +888,32 @@ let stackRanks = [];                 // [{ layer, rank }] for the current layout
 let stackStep = 0;                   // distance between slots (m)
 const _o = new THREE.Vector3();
 
+/* Part explode ("Parts" mode). Every moving part slides away from a centre, in proportion to its distance from it, so the
+   parts keep their arrangement and open up evenly.
+   - Nothing selected: all visible parts in the region move away from the region's centre (c, k, m[layer]). This runs in the
+     vertex shader, like the layer stack.
+   - A structure selected: only its family opens (for example the chambers, valves and vessels of the heart), around the
+     family's own centre. The rest of the body stays home as the usual ghost. Family parts are drawn per part (CPU offsets).
+   k = extra distance at 100% (1 = twice as far from the centre). Every value eases, so mode and selection changes slide. */
+const spr = {
+  c: [new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3()], cT: [new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3()],   // centres: midline, left, right
+  k: 0, kT: 0, m: new Float32Array(MAX_LAYERS), mT: new Float32Array(MAX_LAYERS),
+  famList: [], famKey: '', fk: 0, fw: 0, fwT: 0,
+};
 function applyExplode() {
   const t = S.explode;
   for (let i = 0; i < parts.length; i++) {
-    const p = parts[i], j = i * 3, k = layerIdx[i] * 3;
+    const p = parts[i], j = i * 3;
+    partOffset(p, t, _o);
     const e = p.node.matrix.elements;
-    e[12] = basePos[j] + stackCur[k] * t; e[13] = basePos[j + 1] + stackCur[k + 1] * t; e[14] = basePos[j + 2] + stackCur[k + 2] * t;
+    e[12] = basePos[j] + _o.x; e[13] = basePos[j + 1] + _o.y; e[14] = basePos[j + 2] + _o.z;
   }
-  for (let l = 0; l < MAX_LAYERS; l++) uStack.value[l].set(stackCur[l * 3], stackCur[l * 3 + 1], stackCur[l * 3 + 2]);
+  for (let l = 0; l < MAX_LAYERS; l++) { uStack.value[l].set(stackCur[l * 3], stackCur[l * 3 + 1], stackCur[l * 3 + 2]); uSprM.value[l] = spr.m[l]; }
+  for (let i = 0; i < 3; i++) uSprC.value[i].copy(spr.c[i]);
+  uSprK.value = spr.k;
   uExpl.value = t; worldDirty = true;
-  if (S.sel) refreshWorld();
+  if (mergedReady && familyOpen() !== famOpen) applyAppearance();   // the family turns solid once it starts to open
+  if (isolated()) refreshWorld();
   if (mergedReady) syncHomeGhost();
 }
 function applyViewOffset() {
@@ -846,8 +924,15 @@ function applyViewOffset() {
 }
 // Offset of a part at explode amount t. `table` is stackCur (what is on screen) or stackTgt (where the layout is heading).
 function partOffset(p, t, out, table = stackCur) {
-  const k = layerIdx[p.i] * 3;
-  return out.set(table[k] * t, table[k + 1] * t, table[k + 2] * t);
+  const li = layerIdx[p.i], k = li * 3, tg = table === stackTgt;
+  out.set(table[k] * t, table[k + 1] * t, table[k + 2] * t);
+  const g = (tg ? spr.kT * spr.mT[li] : spr.k * spr.m[li]) * t;
+  if (g) { const c = (tg ? spr.cT : spr.c)[p.sd]; out.x += (p.c0.x - c.x) * g; out.y += (p.c0.y - c.y) * g; out.z += (p.c0.z - c.z) * g; }
+  if (p.fam) {
+    const f = (tg ? spr.fwT : spr.fw) * spr.fk * t;
+    if (f) { out.x += (p.c0.x - p.fam.x) * f; out.y += (p.c0.y - p.fam.y) * f; out.z += (p.c0.z - p.fam.z) * f; }
+  }
+  return out;
 }
 
 function frame(now) {
@@ -870,6 +955,16 @@ function frame(now) {
     if (dmax < 0.0004 || reduceMotion) stackCur.set(stackTgt);
     moved = true;
   }
+  // the part explode eases the same way (centre, amount, which layers move, family opening)
+  let sd = Math.abs(spr.kT - spr.k) + Math.abs(spr.fwT - spr.fw);
+  for (let i = 0; i < 3; i++) sd += spr.cT[i].distanceTo(spr.c[i]);
+  for (let l = 0; l < MAX_LAYERS; l++) sd += Math.abs(spr.mT[l] - spr.m[l]);
+  if (sd > 0.0002) {
+    const a = reduceMotion ? 1 : 1 - Math.exp(-dt * 9);
+    if (sd < 0.0006 || reduceMotion) snapSpread();
+    else { spr.k += (spr.kT - spr.k) * a; spr.fw += (spr.fwT - spr.fw) * a; for (let i = 0; i < 3; i++) spr.c[i].lerp(spr.cT[i], a); for (let l = 0; l < MAX_LAYERS; l++) spr.m[l] += (spr.mT[l] - spr.m[l]) * a; }
+    moved = true;
+  }
   if (moved) { applyExplode(); busy = true; }
   if (tweens.length) {
     const cur = tweens; tweens = [];
@@ -883,7 +978,7 @@ function frame(now) {
     busy = true;
   }
   // brief, gentle emissive pulse on the selection (then it settles) so we do not render continuously
-  if (S.sel) {
+  if (isolated()) {
     const t = now - pulseT0;
     let v = .17;
     if (t < 2600 && !reduceMotion) { v = .17 + .15 * Math.sin(t / 1300 * Math.PI * 2) * (1 - t / 2600); busy = true; }
@@ -1039,8 +1134,8 @@ function regionParts(id = S.region) {
 }
 function pivotCenter(id = S.region) {
   let list = regionParts(id);
-  if (S.explodeTarget > 0) { const home = list.filter(p => !STACK_MOVE.includes(p.layer)); if (home.length) list = home; }
-  return boxOfParts(list, 0).getCenter(new THREE.Vector3());
+  if (S.explodeTarget > 0 && S.xmode === 'layers') { const home = list.filter(p => !STACK_MOVE.includes(p.layer)); if (home.length) list = home; }
+  return boxOfParts(list, 0).getCenter(new THREE.Vector3());   // the part explode opens around this same centre, so it needs no special case
 }
 function frameRegion(id = S.region, dur = 700) {
   if (!parts.some(p => p.vis)) return;
@@ -1113,6 +1208,8 @@ async function loadAllInner(signal, tick, stalled) {
   DATA = await Promise.race([fetchJSON('./data/parts.json', signal), stalled]).catch(e => { throw e && e.kind === 'stall' ? e : Object.assign(e, { kind: 'data' }); });
   tick();
   const cardsP = fetchJSON('./data/cards.json', signal).catch(() => ({ cards: {}, glossary: [] }));
+  const linksP = fetchJSON('./data/links.json', signal).catch(() => ({}));   // optional: without it the app runs with no links and no families
+  const pathsP = fetchJSON('./data/paths.json', signal).catch(() => ({}));
   const files = DATA.files || [];
   const total = Math.max(1, files.reduce((s, f) => s + (f.bytes || 0), 0));
   let loaded = 0, lastUI = 0;
@@ -1136,6 +1233,8 @@ async function loadAllInner(signal, tick, stalled) {
   } catch (e) { draco.dispose(); throw e; }
   loaded = total; showBytes();
   const cd = await cardsP; CARDS = cd.cards || {}; GLOSSARY = cd.glossary || [];
+  const lk = await linksP; LINKS = lk.links || {}; FAMILY = lk.family || {};
+  PATHS = (await pathsP).paths || [];
   setProgress(1, 'Building the body', '100%');
   draco.dispose();
   await new Promise(r => setTimeout(r, 30));
@@ -1165,6 +1264,8 @@ function buildParts(gltfs) {
     const p = {
       i: parts.length, mesh: d.mesh, card: d.card || null, side: d.side || 'M', label: d.label || d.mesh, type: d.type, layer: d.layer, region: d.region,
       tier: d.tier || 0, radial: d.radial || 0, dir: d.dir || [0, 0, 1], node, meshes, tendonMeshes: [], vis: true, st: '', box0: new THREE.Box3(), c0: new THREE.Vector3(), radius: .01,
+      sd: 0,       // part explode: which centre this part opens around (0 midline, 1 left, 2 right)
+      fam: null,   // part explode: the centre this part opens around while its family is open (see updateFamily)
     };
     p.key = p.card || ('mesh:' + p.mesh);
     for (const m of meshes) {
@@ -1185,6 +1286,7 @@ function buildParts(gltfs) {
     node.updateMatrix(); node.matrixWorldNeedsUpdate = true;
     if (p.box0.isEmpty()) p.box0.set(new THREE.Vector3(...d.centroid).subScalar(.01), new THREE.Vector3(...d.centroid).addScalar(.01));
     p.box0.getCenter(p.c0); p.radius = Math.max(.004, p.box0.getSize(_o).length() / 2);
+    p.sd = Math.abs(p.c0.x) < .03 ? 0 : p.c0.x > 0 ? 1 : 2;   // by position, not by the side tag: a few parts carry the wrong tag
     p.region = p.region || 'all';
     // Data guard: some hand ligaments and foot vessels arrive tagged 'pelvis' (their height matches the pelvis). Re-home by position.
     if (p.region === 'pelvis' && d.centroid) { const cx = d.centroid[0], cy = d.centroid[1]; if (Math.abs(cx) > .2) p.region = 'arm'; else if (cy < .6) p.region = 'leg'; }
@@ -1203,6 +1305,11 @@ function buildParts(gltfs) {
     layerIdx[p.i] = Math.min(li, MAX_LAYERS - 1);
   }
   if (layerList.length > MAX_LAYERS) console.warn('More layers than stack slots:', layerList.length);
+  // part texture for the vertex shader: one texel per part (xyz = home centre, w = layer index + 16 * side)
+  const ptH = Math.ceil(parts.length / PT_W), ptD = new Float32Array(PT_W * ptH * 4);
+  for (const p of parts) { const j = p.i * 4; ptD[j] = p.c0.x + basePos[p.i * 3]; ptD[j + 1] = p.c0.y + basePos[p.i * 3 + 1]; ptD[j + 2] = p.c0.z + basePos[p.i * 3 + 2]; ptD[j + 3] = layerIdx[p.i] + 16 * p.sd; }
+  if (uPartTex.value) uPartTex.value.dispose();
+  uPartTex.value = new THREE.DataTexture(ptD, PT_W, ptH, THREE.RGBAFormat, THREE.FloatType); uPartTex.value.needsUpdate = true;
   bodyBox.makeEmpty(); for (const p of parts) bodyBox.union(p.box0);
   // card index: left + right (+ midline) share one entry
   cardIdx = new Map();
@@ -1269,7 +1376,7 @@ function buildMerged() {
     for (const m of g.meshes) {
       const geo = m.geometry, P = geo.attributes.position, N = geo.attributes.normal, I = geo.index;
       nm.getNormalMatrix(m.matrixWorld);
-      const li = layerIdx[m.userData.part.i];
+      const li = m.userData.part.i;   // part index (the shader reads the part's layer and centre from uPartTex)
       for (let i = 0; i < P.count; i++) {
         v.fromBufferAttribute(P, i).applyMatrix4(m.matrixWorld);
         pos[(vo + i) * 3] = v.x; pos[(vo + i) * 3 + 1] = v.y; pos[(vo + i) * 3 + 2] = v.z;
@@ -1280,7 +1387,7 @@ function buildMerged() {
       vo += P.count;
     }
     const geo = new THREE.BufferGeometry();
-    geo.setAttribute('position', new THREE.BufferAttribute(pos, 3)); geo.setAttribute('normal', new THREE.BufferAttribute(nor, 3)); geo.setAttribute('aLayer', new THREE.BufferAttribute(lay, 1)); geo.setIndex(new THREE.BufferAttribute(idx, 1));
+    geo.setAttribute('position', new THREE.BufferAttribute(pos, 3)); geo.setAttribute('normal', new THREE.BufferAttribute(nor, 3)); geo.setAttribute('aPart', new THREE.BufferAttribute(lay, 1)); geo.setIndex(new THREE.BufferAttribute(idx, 1));
     geo.computeBoundingSphere();
     const mesh = new THREE.Mesh(geo, getMBase(g.cls)); mesh.visible = false; mesh.matrixAutoUpdate = false; mesh.frustumCulled = false; mesh.userData.bucket = g;
     // Companions share the geometry: the section ghost (depth pass + colour pass, outside the slab) and the home ghost (a
@@ -1312,7 +1419,7 @@ function precompile() {
   const geo = new THREE.BufferGeometry();
   geo.setAttribute('position', new THREE.Float32BufferAttribute([0, 0, 0, 0, .001, 0, .001, 0, 0], 3));
   geo.setAttribute('normal', new THREE.Float32BufferAttribute([0, 0, 1, 0, 0, 1, 0, 0, 1], 3));
-  geo.setAttribute('aLayer', new THREE.Float32BufferAttribute([0, 0, 0], 1));
+  geo.setAttribute('aPart', new THREE.Float32BufferAttribute([0, 0, 0], 1));
   const g = new THREE.Group(); g.add(new THREE.Mesh(geo, getGhost('Bone')), new THREE.Mesh(geo, getSel('Bone')));
   // compile() only visits visible objects, so add one stand-in per bucket material variant
   for (const m of [getMBase('Bone'), getSecGhost('Bone'), secDepthMat, getHomeGhost('Bone'), beyondFront, beyondBack(1), selBeyondFront, selBeyondBack]) g.add(new THREE.Mesh(geo, m));
@@ -1324,10 +1431,10 @@ function bucketVisible(g) { return !!S.layers[g.layer] && (S.region === 'all' ||
 // isolated structure (solid, at its CPU explode position); every other per-part mesh is on the pick-only layer.
 function syncRender() {
   if (!parts.length) return;
-  const sel = S.sel, sec = S.section.on, lifted = S.explode > .02 && !sel && !scan.on;
+  const iso = isolated(), sec = S.section.on, lifted = S.explode > .02 && !iso && !scan.on;
   for (const g of buckets) {
     const on = bucketVisible(g); g.mesh.visible = on;
-    if (on) { const want = sel ? getGhost(g.cls) : getMBase(g.cls); if (g.mesh.material !== want) g.mesh.material = want; }
+    if (on) { const want = iso ? getGhost(g.cls) : getMBase(g.cls); if (g.mesh.material !== want) g.mesh.material = want; }
     g.secDepth.visible = g.secMesh.visible = on && sec && !scan.on;   // scan view shows the slice only
     g.homeMesh.visible = on && lifted && stackRank(g.layer) > 0;
     g.capS[0].visible = g.capS[1].visible = on && sec;
@@ -1335,36 +1442,70 @@ function syncRender() {
   for (const [c, cap] of capByCls) cap.visible = sec && buckets.some(g => g.cls === c && g.capS[0].visible);
   capFadeColors(); syncSelCap();
   lastLifted = lifted;
-  // Per-part meshes live on layer 1 (pick-only). Only the isolated selection is also put on layer 0, which the camera renders.
+  // Per-part meshes live on layer 1 (pick-only). Only the solid parts of an isolated view (the selection, its open family, a
+  // muscle's attachment bones, the pathway steps) are also put on layer 0, which the camera renders.
   for (const p of parts) {
-    const draw = !!sel && p.vis && p.c === sel;
+    const draw = DRAWN.has(p.st) && (p.vis || p.st === 'org' || p.st === 'ins');   // attachment bones show even when their layer is off
     for (const m of p.meshes) {
       if (draw && (m.userData.cls !== 'Tendon' || S.tendons)) m.layers.enable(0); else m.layers.disable(0);
     }
   }
-  if (sel) refreshWorld();
+  if (iso) refreshWorld();
 }
 let worldDirty = false;
 function refreshWorld() { if (worldDirty) { body.updateMatrixWorld(true); worldDirty = false; } }
 // cheap bucket-only pass used while the explode animates (home ghosts appear once the layers have lifted a little)
 let lastLifted = false;
 function syncHomeGhost() {
-  const lifted = S.explode > .02 && !S.sel && !scan.on;
+  const lifted = S.explode > .02 && !isolated() && !scan.on;
   if (lifted === lastLifted) return;
   lastLifted = lifted;
   for (const g of buckets) g.homeMesh.visible = bucketVisible(g) && lifted && stackRank(g.layer) > 0;
 }
 
 /* ------------------------------------------------------------------ appearance: tap = isolate (ghost style) */
+/* Part states. 'base' = normal view (drawn from the merged buckets). In an isolated view (a selection or a pathway) every part
+   is a 'ghost' (also from the buckets) except the solid ones, which are drawn per part:
+     'sel'   the selected structure, or the current pathway step (accent look)
+     'solid' its open family in the part explode, or the earlier pathway steps (calmer colours)
+     'org' / 'ins'  the bones a selected muscle starts on / ends on (two fixed colours) */
+const DRAWN = new Set(['sel', 'solid', 'org', 'ins']);
+const isolated = () => !!(S.sel || S.path);
+let famOpen = false;
+const familyOpen = () => S.xmode === 'parts' && !!S.sel && !S.path && spr.famList.length > 1 && S.explode > .02;
+const mark = { org: new Set(), ins: new Set() };
+function computeMarks() {
+  mark.org.clear(); mark.ins.clear();
+  const c = S.sel; if (!c || S.path || c.type !== 'muscle') return;
+  for (const [label, keys] of LINKS[c.key] || []) {
+    const set = label === 'Origin' ? mark.org : label === 'Insertion' ? mark.ins : null; if (!set) continue;
+    for (const k of keys) { const t = cardIdx.get(k); if (t && (t.type === 'bone' || t.type === 'cartilage')) for (const p of t.parts) set.add(p); }
+  }
+  for (const p of mark.org) mark.ins.delete(p);   // a bone that holds both ends shows as the origin
+}
+function styleOf(p) {
+  const sel = S.sel, path = S.path;
+  if (path) {
+    if (sel && p.c === sel) return 'sel';
+    if (path.sets[path.step].has(p)) return 'sel';
+    for (let i = 0; i < path.step; i++) if (path.sets[i].has(p)) return 'solid';
+    return 'ghost';
+  }
+  if (!sel) return 'base';
+  if (p.c === sel) return 'sel';
+  if (mark.org.has(p)) return 'org';
+  if (mark.ins.has(p)) return 'ins';
+  if (famOpen && p.fam) return 'solid';
+  return 'ghost';
+}
 function applyAppearance() {
-  const sel = S.sel;
+  computeMarks(); famOpen = familyOpen();
   for (const p of parts) {
-    const want = !sel ? 'base' : (p.c === sel ? 'sel' : 'ghost');
+    const want = styleOf(p);
     if (p.st === want) continue;
     const prev = p.st; p.st = want;
-    if (prev === 'sel') for (const m of p.meshes) m.geometry.dispose();   // frees the GPU buffers only; the CPU arrays stay for raycasting
-    const lib = want === 'sel' ? getSel : getBase;   // per-part meshes are only ever drawn when selected; ghosts come from the merged buckets
-    for (const m of p.meshes) m.material = lib(m.userData.cls);
+    if (DRAWN.has(prev) && !DRAWN.has(want)) for (const m of p.meshes) m.geometry.dispose();   // frees the GPU buffers only; the CPU arrays stay for raycasting
+    for (const m of p.meshes) m.material = want === 'sel' ? getSel(m.userData.cls) : (want === 'org' || want === 'ins') ? getTint(want) : want === 'solid' ? getDim(m.userData.cls) : getBase(m.userData.cls);
   }
   syncRender();
   requestRender();
@@ -1477,6 +1618,62 @@ function fitStackToCut() {
   if (ax.x) S.stackAxis.set(0, 0, 1); else S.stackAxis.set(1, 0, 0);
   return true;
 }
+// How far a set of parts must open so that neighbours come apart: for a sample of parts, compare the size of each part and its
+// nearest neighbour with the distance between their centres, and take a value that clears most pairs.
+function spreadK(list, max) {
+  const n = list.length; if (n < 2) return 0;
+  const step = Math.max(1, Math.floor(n / 220)), r = [];
+  for (let i = 0; i < n; i += step) {
+    const a = list[i]; let best = Infinity, br = 0;
+    for (let j = 0; j < n; j++) { if (j === i) continue; const d = a.c0.distanceToSquared(list[j].c0); if (d < best) { best = d; br = list[j].radius; } }
+    r.push(.55 * (a.radius + br) / Math.max(.002, Math.sqrt(best)));
+  }
+  r.sort((x, y) => x - y);
+  return clamp(r[Math.floor((r.length - 1) * .7)] - 1, .9, max);
+}
+// The family of the selected structure: the visible parts that share its group (links.json). A family on both sides of the
+// body with no midline part opens as two groups, one per side, each around its own centre.
+function updateFamily() {
+  for (const p of spr.famList) p.fam = null;
+  spr.famList = [];
+  const c = S.sel, f = c && !S.path && S.xmode === 'parts' ? FAMILY[c.key] : null;
+  let key = '';
+  if (f) {
+    const list = parts.filter(p => p.vis && FAMILY[p.key] === f);
+    if (list.length > 1 && list.some(p => p.c === c)) {
+      const groups = list.some(p => p.side === 'M') ? [list] : ['L', 'R'].map(sd => list.filter(p => p.side === sd)).filter(g => g.length);
+      for (const g of groups) { const cen = boxOfParts(g, 0).getCenter(new THREE.Vector3()); for (const p of g) p.fam = cen; }
+      spr.famList = list; spr.fk = spreadK(groups.reduce((a, b) => (b.length > a.length ? b : a)), 3.2); key = f + '|' + S.region;
+    }
+  }
+  if (key !== spr.famKey) { spr.famKey = key; spr.fw = 0; }   // a new family opens from closed
+}
+function snapSpread() { spr.k = spr.kT; spr.fw = spr.fwT; for (let i = 0; i < 3; i++) spr.c[i].copy(spr.cT[i]); spr.m.set(spr.mT); }
+// Targets of the part explode for the current mode, selection, region and layers.
+function layoutSpread() {
+  if (!parts.length) return;
+  updateFamily();
+  spr.kT = 0; spr.fwT = 0;
+  if (S.xmode === 'parts') {
+    if (!isolated()) {
+      const vis = parts.filter(p => p.vis);
+      const anyMover = vis.some(p => STACK_MOVE.includes(p.layer));
+      const stays = l => anyMover && !STACK_MOVE.includes(l);   // the skeleton stays only while organs or muscles are there to move
+      const moving = vis.filter(p => !stays(p.layer));
+      spr.mT.fill(0);
+      for (const p of moving) spr.mT[layerIdx[p.i]] = 1;
+      // One centre for the whole region. Arms and legs are two separate limbs, so each side opens around its own centre.
+      if (vis.length) {
+        boxOfParts(vis, 0).getCenter(spr.cT[0]); spr.cT[1].copy(spr.cT[0]); spr.cT[2].copy(spr.cT[0]);
+        if (S.region === 'arm' || S.region === 'leg') for (const i of [1, 2]) { const side = vis.filter(p => p.sd === i); if (side.length) boxOfParts(side, 0).getCenter(spr.cT[i]); }
+      }
+      spr.kT = spreadK(moving, 2.2);
+    } else if (S.sel && !S.path && spr.famList.length > 1) spr.fwT = 1;
+  }
+  if (spr.k < 1e-4) { for (let i = 0; i < 3; i++) spr.c[i].copy(spr.cT[i]); spr.m.set(spr.mT); }   // nothing is open, so a new centre or layer set cannot be seen: adopt it
+  if (S.explode === 0 && S.explodeTarget === 0) { snapSpread(); if (spr.famList.length) spr.fw = spr.fwT; }
+  requestRender();
+}
 function layoutStack() {
   if (!parts.length) return;
   fitStackToCut();
@@ -1486,14 +1683,21 @@ function layoutStack() {
   const present = new Set();
   for (const p of parts) if (p.vis) present.add(p.layer);
   stackRanks = []; let rank = 0;
-  for (const l of STACK_MOVE) if (present.has(l)) stackRanks.push({ layer: l, rank: ++rank });
+  if (S.xmode === 'layers') for (const l of STACK_MOVE) if (present.has(l)) stackRanks.push({ layer: l, rank: ++rank });   // parts mode: no stack
   stackTgt.fill(0);
   for (const r of stackRanks) {
     const li = layerList.indexOf(r.layer); if (li < 0 || li >= MAX_LAYERS) continue;
     stackTgt[li * 3] = ax.x * stackStep * r.rank; stackTgt[li * 3 + 1] = 0; stackTgt[li * 3 + 2] = ax.z * stackStep * r.rank;
   }
+  layoutSpread();
   if (S.explode === 0 && S.explodeTarget === 0) { stackCur.set(stackTgt); applyExplode(); }   // nothing on screen moves; just adopt the layout
   requestRender();
+}
+function setXMode(m) {
+  if (S.xmode === m) return;
+  S.xmode = m;
+  if (m === 'layers') chooseStackAxis();
+  layoutStack(); syncExplodeUI(); requestRender();
 }
 function setExplodeTarget(v) {
   v = clamp(v, 0, 1);
@@ -1511,7 +1715,11 @@ function syncExplodeUI() {
   const on = S.explodeTarget > .5;
   btnExplode.querySelector('span').textContent = on ? 'Collapse' : 'Explode';
   btnExplode.setAttribute('aria-pressed', String(on));
+  for (const b of $$('button', xModeEl)) b.setAttribute('aria-checked', String(b.dataset.x === S.xmode));
 }
+const xModeEl = $('#xMode');
+for (const b of $$('button', xModeEl)) b.addEventListener('click', () => setXMode(b.dataset.x));
+
 slider.addEventListener('input', () => { sliderDragging = true; setExplodeTarget(slider.value / 100); });
 const endDrag = () => { sliderDragging = false; syncExplodeUI(); };
 slider.addEventListener('change', endDrag); slider.addEventListener('pointerup', endDrag); slider.addEventListener('touchend', endDrag);
@@ -1520,7 +1728,7 @@ btnExplode.addEventListener('click', () => { sliderDragging = false; setExplodeT
 /* ------------------------------------------------------------------ section cut: a slab between two planes on one of the three body planes.
    The slab is drawn solid with flat cut faces; everything outside it is a faint ghost. The slider range follows the region.
    Nothing here moves the 3D camera. "Scan view" switches to a separate flat camera (see setScan). */
-const secRows = $('#secRows'), btnSection = $('#btnSection'), secLevel = $('#secLevel'), segEl = $('.seg'), btnScan = $('#btnScan'), orientEl = $('#orient');
+const secRows = $('#secRows'), btnSection = $('#btnSection'), secLevel = $('#secLevel'), segEl = $('#secRows .seg'), btnScan = $('#btnScan'), orientEl = $('#orient');
 const kf = { sil: $('#kfSil'), range: $('#kfRange'), slab: $('#kfSlab') };
 const secRange = { lo: 0, hi: 1 };
 const secAxis = () => SEC_AXES[S.section.plane];
@@ -1817,6 +2025,7 @@ function selectCard(c, { frame = false, sheet = null, fromSearch = false } = {})
   const isNew = S.sel !== c;
   S.sel = c;
   if (isNew) pulseT0 = performance.now();
+  layoutSpread();   // part explode: the family of the new selection opens; everything else goes home
   applyAppearance();
   renderSheet(c); renderBanner(c);
   if (sheet && sheet !== 'peek') setSheet(sheet);
@@ -1826,8 +2035,63 @@ function selectCard(c, { frame = false, sheet = null, fromSearch = false } = {})
 }
 function clearSelection() {
   if (!S.sel && sheetState === 'hidden') return;
-  S.sel = null; applyAppearance(); setSheet('hidden'); selBar.hidden = true;
+  S.sel = null; layoutSpread(); applyAppearance(); setSheet('hidden'); selBar.hidden = true;
 }
+
+/* ------------------------------------------------------------------ pathways: a step-by-step route (blood, air, food...)
+   Each step shows its structures in the selected look; the steps before it stay solid, and the rest of the body is a ghost.
+   The step name and a short note show on a bar below the model (the 3D view has no labels). Starting a pathway frames the
+   whole route once; the steps never move the camera. A tap on a structure still opens its name and study card. */
+const pathBar = $('#pathBar'), pathsEl = $('#paths');
+function buildPaths() {
+  pathsEl.textContent = '';
+  for (const d of PATHS) {
+    const b = el('button', 'li'); b.dataset.path = d.id; b.setAttribute('aria-pressed', 'false');
+    b.append(el('span', 'nm', d.name));
+    b.insertAdjacentHTML('beforeend', '<svg class="i ck" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>');
+    b.addEventListener('click', () => { if (S.path && S.path.def === d) endPath(); else startPath(d.id); });
+    pathsEl.append(b);
+  }
+  const h = pathsEl.previousElementSibling; if (h) h.hidden = !PATHS.length;
+}
+function startPath(id) {
+  const def = PATHS.find(d => d.id === id); if (!def) return;
+  const sets = def.steps.map(st => { const s = new Set(); for (const k of st.k) { const c = cardIdx.get(k); if (c) for (const p of c.parts) s.add(p); } return s; });
+  if (S.sel) { S.sel = null; setSheet('hidden'); selBar.hidden = true; }
+  S.path = { def, step: 0, sets };
+  // show what the route needs: every region, and the layers its structures are on
+  S.region = 'all'; for (const b of $$('.rg', regionsEl)) b.setAttribute('aria-selected', String(b.dataset.region === 'all'));
+  const all = []; for (const s of sets) for (const p of s) { S.layers[p.layer] = true; all.push(p); }
+  if (S.explodeTarget > 0) setExplodeTarget(0);   // a route reads best with everything in place
+  applyVisibility(); applyAppearance(); renderPath();
+  pulseT0 = performance.now();
+  if (!isWide()) setMenuOpen(false);
+  if (all.length && !scan.on) moveCamera(fitBox(boxOfParts(all, 0), viewDirFor('all'), bottomOccupied() + (pathBar.offsetHeight || 80), .3));
+  requestRender();
+}
+function stepPath(d) {
+  const P = S.path; if (!P) return;
+  const n = clamp(P.step + d, 0, P.def.steps.length - 1); if (n === P.step) return;
+  P.step = n; pulseT0 = performance.now();
+  applyAppearance(); renderPath();
+}
+function endPath() {
+  if (!S.path) return;
+  S.path = null; layoutSpread(); applyAppearance(); renderPath();
+}
+function renderPath() {
+  const P = S.path;
+  pathBar.hidden = !P;
+  for (const b of $$('.li', pathsEl)) b.setAttribute('aria-pressed', String(!!P && P.def.id === b.dataset.path));
+  if (!P) return;
+  const st = P.def.steps[P.step];
+  $('#pathMeta').textContent = P.def.name + '  ·  ' + (P.step + 1) + ' of ' + P.def.steps.length;
+  $('#pathTitle').textContent = st.t; $('#pathNote').textContent = st.n || '';
+  $('#pathPrev').disabled = P.step === 0; $('#pathNext').disabled = P.step === P.def.steps.length - 1;
+}
+$('#pathPrev').addEventListener('click', () => stepPath(-1));
+$('#pathNext').addEventListener('click', () => stepPath(1));
+$('#pathClose').addEventListener('click', () => endPath());
 
 /* ------------------------------------------------------------------ info sheet */
 let sheetState = 'hidden';
@@ -1882,6 +2146,24 @@ function sideText(c) {
   if (s.has('L')) return s.has('M') ? 'Both sides' : 'Left';
   return 'Midline';
 }
+// Related structures: the other structures this card names (links.json). A tap selects that structure and opens its card.
+// It turns the structure's layer on if it is off. It does not move the camera.
+function relatedEl(c) {
+  const rows = (LINKS[c.key] || []).map(([label, keys]) => [label, keys.map(k => cardIdx.get(k)).filter(Boolean)]).filter(r => r[1].length);
+  if (!rows.length) return null;
+  const sec = el('section', 'field rel'); sec.append(el('h4', null, 'Related structures'));
+  for (const [label, list] of rows) {
+    const h = el('div', 'rl');
+    if (c.type === 'muscle' && (label === 'Origin' || label === 'Insertion')) {   // the same colours the bones show in the 3D view
+      const d = el('i', 'dot'); d.style.background = '#' + (label === 'Origin' ? ORG_COLOR : INS_COLOR).toString(16).padStart(6, '0'); h.append(d);
+    }
+    h.append(document.createTextNode(label)); sec.append(h);
+    const box = el('div', 'links');
+    for (const t of list) { const b = el('button', 'lk', t.name); b.addEventListener('click', () => selectCard(t, { sheet: 'open', fromSearch: true })); box.append(b); }
+    sec.append(box);
+  }
+  return sec;
+}
 function renderSheet(c) {
   const card = c.card, p0 = c.parts[0];
   $('#sName').textContent = c.name;
@@ -1911,6 +2193,7 @@ function renderSheet(c) {
     if (used.has(k) || COMMON_KEYS.has(k) || card[k] == null || typeof card[k] === 'boolean') continue;
     const f = fieldEl(cap1(k.replace(/_/g, ' ')), card[k]); if (f) bodyEl.append(f);
   }
+  const rel = relatedEl(c); if (rel) bodyEl.append(rel);
   if (card.clinical) { const f = fieldEl('Clinical note', card.clinical); const box = el('div', 'clin'); box.append(...f.childNodes); bodyEl.append(box); }
 }
 
@@ -2024,7 +2307,7 @@ function renderInfo() {
   cr.append(document.createTextNode((DATA && DATA.credit) || 'Credits unavailable.')); b.append(cr);
   b.append(el('div', 'warn', 'For study only. Not for clinical use.'));
   const meta = el('p', 'small'); meta.style.marginTop = '14px';
-  meta.textContent = 'Tap a structure to isolate it; tap empty space to restore. Drag to rotate, pinch to zoom, two fingers to pan. Explode lifts the organs and muscle layers off the skeleton, one slot each. Section cuts a slab through the body on one of the three body planes. Add to Home Screen for the full-screen app.';
+  meta.textContent = 'Tap a structure to isolate it; tap empty space to restore. Drag to rotate, pinch to zoom, two fingers to pan. Explode has two modes. Layers lifts the organs and muscle layers off the skeleton, one slot each. Parts moves each visible part away from the centre; with a structure selected, only its group opens (for example the heart). Select a muscle to see the bones it starts on (green) and ends on (orange). Pathways steps through a route, such as blood through the heart. Section cuts a slab through the body on one of the three body planes. Add to Home Screen for the full-screen app.';
   b.append(meta);
 }
 $('#btnInfo').addEventListener('click', () => { renderInfo(); openModal('#mInfo'); });
@@ -2064,7 +2347,7 @@ addEventListener('load', reg);
     precompile();
     peelOrder = PEEL_ORDER.filter(l => (DATA.layers || []).some(x => x.id === l));
     for (const l of DATA.layers || []) S.layers[l.id] = true;
-    buildRegions(); buildChips(); applyVisibility(); applyAppearance(); updatePeel(); syncExplodeUI(); applySection(); applyTheme();
+    buildRegions(); buildChips(); buildPaths(); applyVisibility(); applyAppearance(); updatePeel(); syncExplodeUI(); applySection(); applyTheme();
     layoutMenu(); computeShift();
     // initial framing: whole body, front view, inside the free area
     const g = fitBox(boxOfParts(parts, 0), new THREE.Vector3(0, .05, 1), bottomOccupied(), .12, pivotCenter('all'));
@@ -2078,7 +2361,7 @@ addEventListener('load', reg);
     window.__loadMs = performance.now() - t0;
     window.__app = {
       S, parts, cardIdx, selectCard, clearSelection, setSheet, setRegion, camera, controls, scene, renderer, pickAt, pickables, resetView, frameRegion,
-      setExplodeTarget, layoutStack, setSection, applySection, setScan, scan, scanCam, slabPlanes, buckets, requestRender,
+      setExplodeTarget, layoutStack, setXMode, startPath, stepPath, endPath, spr, get links() { return LINKS; }, get paths() { return PATHS; }, setSection, applySection, setScan, scan, scanCam, slabPlanes, buckets, requestRender,
       get stack() { return { axis: S.stackAxis.toArray(), step: stackStep, ranks: stackRanks.slice(), cur: Array.from(stackCur), tgt: Array.from(stackTgt) }; },
       get secRange() { return { lo: secRange.lo, hi: secRange.hi, level: secLevelValue() }; },
       get lastPick() { return lastPick; }, get tweening() { return tweens.length > 0 || !!cameraTween; }, get sheetState() { return sheetState; }, count: n, THREE, searchCards,

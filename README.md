@@ -9,7 +9,13 @@ An interactive 3D model of the full human body for iPhone. It shows 2,387 parts 
 - **Three zones** on iPad and desktop: with the study card open, the menu, the model and the card each take one third of the screen. The model slides sideways (no zoom) to stay centered in its zone. On iPhone, the menu and the card are drawers, and opening one closes the other.
 - The 3D view has no text labels.
 - **Layers** is a list with a check mark for each system that shows. **Peel** hides systems from the outside in.
-- **Explode** is a layer stack, like an exploded axonometric. The skeleton, joints, nerves, vessels, brain and spinal cord stay in place. Organs, deep muscle, middle muscle and superficial muscle lift off sideways, one slot each. At 100% no two layers overlap. Hidden or empty layers take no slot. Reset frames the whole stack and keeps the skeleton at the center.
+- **Explode** has two modes: **Layers** and **Parts**. **Layers** is a layer stack, like an exploded axonometric. The skeleton, joints, nerves, vessels, brain and spinal cord stay in place. Organs, deep muscle, middle muscle and superficial muscle lift off sideways, one slot each. At 100% no two layers overlap. Hidden or empty layers take no slot. Reset frames the whole stack and keeps the skeleton at the center.
+- **Parts** moves each visible part away from the center of the region, so the parts come apart. It works on the layers that show. For example, show only Organs to open the organs, or show only Bone to open the skull. In Arms and Legs, each limb opens around its own center.
+  - Bone, joints, nerves and vessels stay in place while organs or muscles show. If only those layers show, they move.
+  - With a structure selected, only its group opens, around the group's own center. For example, select the left ventricle to open the heart into chambers, valves and vessels. The group shows in calmer colors, and the selected structure stays bright. Tap another part of the group to select it.
+- **Related structures** on the study card lists the other structures that the card names: artery, nerve, attachments, branches and parts. Tap one to select it and open its card. The camera does not move.
+- **Muscle attachments.** Select a muscle, and the bones it starts on show in green and the bones it ends on show in orange. The whole bone takes the color; the model has no data for the exact attachment area.
+- **Pathways** (bottom of the side menu) steps through a route: blood through the heart, air to the lungs, food through the gut, and others. The bar below the model shows the step name and a short note. The current step is bright, earlier steps stay solid in calmer colors, and the body is a ghost. Starting a pathway frames the route one time; the steps do not move the camera.
 - **Rotation pivot.** The view rotates around the center of the body in the current region. When the explode is open, the pivot is the center of the parts that stay in place (the skeleton). Two-finger pan starts only after the fingers move together about 28 px, so a pinch-zoom does not move the pivot. Tap **Center** to put the pivot back on the body. Tap the **Focus** button on the name banner to rotate around the selected structure.
 - **Section** cuts one thin slice (5 mm) through the body on one of the three body planes (axial, coronal, sagittal). The cut faces are filled solid, in a darker shade of each part's color. Everything between you and the cut is removed, like a plan cut. Whatever lies beyond the slice stays as a faint ghost. The key figure shows where the cut is. The slider range follows the region picker. Tap a cut face to select that part.
 - **Scan view** shows the slice exactly straight on, flat (no perspective), so sizes and distances are true at every depth, like a CT image. It uses the radiology orientation: axial is seen from the feet (the patient's right on the screen's left, the front at the top), coronal from the front, and sagittal from the patient's left (the front on the screen's left). Letters at the screen edges show the directions (R, L, A, P, S, I). Rotation is locked: drag to pan, pinch or scroll to zoom, and tap Reset to fit the slice. The ghost is hidden, so only the slice shows. Turn Scan view off to return to the same 3D view.
@@ -22,6 +28,9 @@ An interactive 3D model of the full human body for iPhone. It shows 2,387 parts 
 | `models/*.glb` | The 3D models, one per body system (6.8 MB total, compressed) |
 | `data/parts.json` | Part list: side, region, layer, explode data |
 | `data/cards.json` | Study cards and glossary |
+| `data/links.json` | Links between cards (related structures, muscle attachments) and the groups for the part explode |
+| `data/paths.json` | Pathways: steps, notes and structures |
+| `tools/build_links.py` | Builds `data/links.json` from the cards |
 | `manifest.json` | Home Screen settings |
 | `sw.js` | Cache for fast repeat visits and offline use |
 | `icon-180.png` | iPhone Home Screen icon |
@@ -40,6 +49,11 @@ All paths are relative, so any folder name works.
 ## Update the app
 
 **Caution:** The cache keeps old files. If you change any file, change `VERSION` in `sw.js` (for example, `'v2'` to `'v3'`). If you do not, the iPhone keeps the old version.
+
+## Edit the data
+
+- If you change `data/cards.json`, run `python3 tools/build_links.py` from the repository root. This builds `data/links.json` again.
+- To add a pathway, add an entry to `data/paths.json`. Each step has a title (`t`), a note (`n`) and a list of card keys (`k`).
 
 ## Requirements
 

@@ -1,7 +1,7 @@
 /* Anatomy 3D service worker (full body).
    Bump VERSION whenever the app shell changes. Models are cache-first and keyed by their full URL
    (including any ?v=… in data/parts.json files[].url), so change that query (or bump VERSION) when a GLB changes. */
-const VERSION = 'v13';
+const VERSION = 'v14';
 const PREFIX = 'anatomy3d-';
 const CACHE = PREFIX + VERSION;
 
@@ -9,7 +9,7 @@ const THREE_BASE = 'https://cdn.jsdelivr.net/npm/three@0.170.0/';
 const FONT_CSS = 'https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..700;1,9..144,400..600&display=swap';
 const SHELL = [
   './index.html', './manifest.json',   // navigations are answered with ./index.html, so './' need not be stored separately
-  './data/parts.json', './data/cards.json',
+  './data/parts.json', './data/cards.json', './data/links.json', './data/paths.json',
   './icon-180.png', './icon-192.png', './icon-512.png', './icon-maskable-512.png',
 ];
 const CDN = [
